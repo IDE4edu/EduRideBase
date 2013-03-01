@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: EduRideBasePlugin
 Bundle-SymbolicName: EduRideBasePlugin
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: eduridebaseplugin.EduRideBase
+Bundle-Activator: edu.berkeley.eduride.base_plugin.EduRideBase
 Require-Bundle: org.eclipse.core.runtime
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
