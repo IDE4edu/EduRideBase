@@ -8,7 +8,7 @@ public class UserPrefs {
 	public final UserPrefs INSTANCE = new UserPrefs();
 	
 	private UserPrefs() {
-		prefs = InstanceScope.INSTANCE.getNode("EduRideBasePlugin");
+		prefs = InstanceScope.INSTANCE.getNode(EduRideBase.PLUGIN_ID);
 	}
 	
 	public boolean authenticate(String username, String password) {
