@@ -51,6 +51,7 @@ public class EduRideBase implements BundleActivator {
 	public void start(BundleContext bundleContext) throws Exception {
 		EduRideBase.context = bundleContext;
 		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+		plugin=this;
 		
 		// TODO: ensure that workspaceID is set for this workspace
 	}
