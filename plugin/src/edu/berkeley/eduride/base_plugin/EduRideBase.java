@@ -9,6 +9,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IStartup;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -27,6 +29,7 @@ public class EduRideBase implements BundleActivator, IStartup {
 	private static EduRideBase plugin = null;
 	private static UUID workspaceID = null;	
 	private static String domain = DEFAULT_DOMAIN;
+	private static PreferenceStore prefStore = null;
 	
 	static BundleContext getContext() {
 		return context;
@@ -37,6 +40,7 @@ public class EduRideBase implements BundleActivator, IStartup {
 	 */
 	public EduRideBase() {
 		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+		prefStore = new PreferenceStore(prefs.absolutePath());
 		plugin = this;
 	}
 	
@@ -122,6 +126,10 @@ public class EduRideBase implements BundleActivator, IStartup {
 	public void earlyStartup() {
 		// if no workspace id exists, this makes sure to generate it
 		workspaceID = UUID.fromString(prefs.get("workspaceID", generateWsID()));
+	}
+
+	public IPreferenceStore getPreferenceStore() {
+		return prefStore;
 	}
 
 }
