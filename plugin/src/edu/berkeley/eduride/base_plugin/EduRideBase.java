@@ -1,35 +1,37 @@
 package edu.berkeley.eduride.base_plugin;
 
+import java.util.UUID;
+
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.swt.internal.ole.win32.GUID;
+import org.eclipse.ui.IStartup;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import edu.berkeley.eduride.feedbackview.EduRideFeedback;
+//import edu.berkeley.eduride.feedbackview.EduRideFeedback;
 
-public class EduRideBase implements BundleActivator {
+public class EduRideBase implements BundleActivator, IStartup {
 
 	private static BundleContext context;
 	private static IEclipsePreferences prefs;
 	
 	public static final String PLUGIN_ID = "EduRideBase";
+	public static final String DEFAULT_DOMAIN = "eduride.berkeley.edu";
+	public static final String guestUserName = "Guest User (not logged in)";
 	// The shared instance
 	private static EduRideBase plugin = null;
-	
-	public static final String guestUserName = "Guest User (not logged in)";
-	
-	// TODO: make it so that EduRideBase gets loaded with eclipse, not delayed.
-	
+	private static UUID workspaceID = null;	
 	
 	static BundleContext getContext() {
 		return context;
 	}
 	
-	
 	/**
 	 * The constructor
 	 */
 	public EduRideBase() {
+		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 		plugin = this;
 	}
 	
@@ -42,18 +44,12 @@ public class EduRideBase implements BundleActivator {
 		return plugin;
 	}
 	
-	
-	
 	/*
 	 * (non-Javadoc)
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
-	public void start(BundleContext bundleContext) throws Exception {
+	public void start(BundleContext bundleContext) throws Exception {		
 		EduRideBase.context = bundleContext;
-		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
-		plugin=this;
-		
-		// TODO: ensure that workspaceID is set for this workspace
 	}
 
 	/*
@@ -63,8 +59,6 @@ public class EduRideBase implements BundleActivator {
 	public void stop(BundleContext bundleContext) throws Exception {
 		EduRideBase.context = null;
 	}
-	
-	
 	
 	public static String whoami() {
 		String username = prefs.get("username", null);
@@ -80,15 +74,19 @@ public class EduRideBase implements BundleActivator {
 		return prefs.getLong("authHash", -1);
 	}
 
-	public static long workspaceID() {
+	public static UUID getWorkspaceID() {
 		// any way to make this private?  So other plugins cant change it?
 		// check out http://www.vogella.com/blog/2010/03/11/emf-unique-ids/
-		return prefs.getLong("workspaceID", generateWsID());
+		return workspaceID;
 	}
 
-	private static long generateWsID() {
-		// TODO Auto-generated method stub
-		return 0;
+	/**
+	 * Generates and returns a unique workspace ID (in string form).
+	 * @return
+	 */
+	private static String generateWsID() {
+		workspaceID = UUID.randomUUID();
+		return workspaceID.toString();
 	}
 	
 	private int generateAuthHash() {
@@ -104,6 +102,12 @@ public class EduRideBase implements BundleActivator {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void earlyStartup() {
+		// if no workspace id exists, this makes sure to generate it
+		workspaceID = UUID.fromString(prefs.get("workspaceID", generateWsID()));
 	}
 
 }

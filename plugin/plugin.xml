@@ -15,5 +15,9 @@
             class="edu.berkeley.eduride.base_plugin.prefs.PreferenceInitializer">
       </initializer>
    </extension>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup></startup>
+   </extension>
 
 </plugin>
