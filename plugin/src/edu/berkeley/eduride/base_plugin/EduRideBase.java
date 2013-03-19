@@ -12,12 +12,13 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 //import edu.berkeley.eduride.feedbackview.EduRideFeedback;
 
-public class EduRideBase implements BundleActivator, IStartup {
+public class EduRideBase extends AbstractUIPlugin implements IStartup {
 
 	private static BundleContext context;
 	private static IEclipsePreferences prefs;
@@ -83,20 +84,8 @@ public class EduRideBase implements BundleActivator, IStartup {
 		return prefs.getLong("authHash", -1);
 	}
 
-	public static UUID getWorkspaceID() {
-		// any way to make this private?  So other plugins cant change it?
-		// check out http://www.vogella.com/blog/2010/03/11/emf-unique-ids/
-		return workspaceID;
-	}
 
-	/**
-	 * Generates and returns a unique workspace ID (in string form).
-	 * @return
-	 */
-	private static String generateWsID() {
-		workspaceID = UUID.randomUUID();
-		return workspaceID.toString();
-	}
+
 	
 	private boolean isVerified(Object content) {
 		// TODO actually process the content
@@ -122,12 +111,26 @@ public class EduRideBase implements BundleActivator, IStartup {
 		return success;
 	}
 
+	
 	@Override
 	public void earlyStartup() {
 		// if no workspace id exists, this makes sure to generate it
-		workspaceID = UUID.fromString(prefs.get("workspaceID", generateWsID()));
+		String workspaceIDString = prefs.get("workspaceID", generateWsID());
+		if (workspaceID == null) {
+			workspaceID = UUID.fromString(workspaceIDString);
+		}
+	}
+	
+	private static String generateWsID() {
+		workspaceID = UUID.randomUUID();
+		return workspaceID.toString();
 	}
 
+	public static String getWorkspaceID() {
+		return workspaceID.toString();
+	}
+
+	
 	public IPreferenceStore getPreferenceStore() {
 		return prefStore;
 	}

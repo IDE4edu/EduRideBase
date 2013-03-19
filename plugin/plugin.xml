@@ -6,7 +6,7 @@
       <page
             class="edu.berkeley.eduride.base_plugin.prefs.EduRidePreferencePage"
             id="edu.berkeley.eduride.base_plugin.prefs.EduRidePreferencePage"
-            name="EduRide Preferences">
+            name="EduRide">
       </page>
    </extension>
    <extension
@@ -14,6 +14,10 @@
       <initializer
             class="edu.berkeley.eduride.base_plugin.prefs.PreferenceInitializer">
       </initializer>
+      <scope
+            class="org.eclipse.core.runtime.preferences.InstanceScope"
+            name="edurideBase.instanceScope">
+      </scope>
    </extension>
    <extension
          point="org.eclipse.ui.startup">
