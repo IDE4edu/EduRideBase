@@ -1,10 +1,14 @@
 package edu.berkeley.eduride.base_plugin;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.UUID;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.swt.internal.ole.win32.GUID;
 import org.eclipse.ui.IStartup;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -22,6 +26,7 @@ public class EduRideBase implements BundleActivator, IStartup {
 	// The shared instance
 	private static EduRideBase plugin = null;
 	private static UUID workspaceID = null;	
+	private static String domain = DEFAULT_DOMAIN;
 	
 	static BundleContext getContext() {
 		return context;
@@ -89,19 +94,28 @@ public class EduRideBase implements BundleActivator, IStartup {
 		return workspaceID.toString();
 	}
 	
-	private int generateAuthHash() {
-		// TODO Auto-generated method stub
-		return 0;
+	private boolean isVerified(Object content) {
+		// TODO actually process the content
+		return true;
 	}
 	
 	private boolean authenticate(String username, String password) {
-		if (true /*something(username, password) */) {
-			int authHash = generateAuthHash();
+		boolean success;
+		try {
+			URL url = new URL("https", domain, 80, "login"); // TODO put legit target name
+			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+			Object content = connection.getContent();
+			success = isVerified(content);
 			prefs.put("username", username);
-			prefs.putInt("authHash", authHash);
-			return true;
+			// TODO use legit hash
+			prefs.putInt("authHash", 
+					(username + password + System.currentTimeMillis()).hashCode());
+		} catch (MalformedURLException e) {
+			success = false;
+		} catch (IOException e) {
+			success = false;
 		}
-		return false;
+		return success;
 	}
 
 	@Override
