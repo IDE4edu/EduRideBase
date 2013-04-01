@@ -1,6 +1,11 @@
 package edu.berkeley.eduride.base_plugin.prefs;
 
 import org.eclipse.jface.preference.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import edu.berkeley.eduride.base_plugin.EduRideBase;
@@ -20,51 +25,40 @@ import edu.berkeley.eduride.base_plugin.EduRideBase;
  */
 
 public class EduRidePreferencePage
-	extends FieldEditorPreferencePage
+	extends PreferencePage
 	implements IWorkbenchPreferencePage {
 
 	public EduRidePreferencePage() {
-		super(GRID);
 		setPreferenceStore(EduRideBase.getDefault().getPreferenceStore());
-		setDescription("A demonstration of a preference page implementation");
+		setDescription("Preferences for EduRide");
 	}
 	
-	/**
-	 * Creates the field editors. Field editors are abstractions of
-	 * the common GUI blocks needed to manipulate various types
-	 * of preferences. Each field editor knows how to save and
-	 * restore itself.
-	 */
-	public void createFieldEditors() {
-		// TODO
-		/*
-		 * Heading: current user and server
-		 * 
-		 * say one of
-		 * -- you are not currently logged in
-		 * -- you have choosen to be a guest at server S
-		 * -- you are authenticated as user U at server S
-		 * 
-		 * show a "Change User" button
-		 */
-
-		addField(new DirectoryFieldEditor(PreferenceConstants.P_PATH, 
-				"&Directory preference:", getFieldEditorParent()));
-		addField(
-			new BooleanFieldEditor(
-				PreferenceConstants.P_BOOLEAN,
-				"&An example of a boolean preference",
-				getFieldEditorParent()));
-
-		addField(new RadioGroupFieldEditor(
-				PreferenceConstants.P_CHOICE,
-			"An example of a multiple-choice preference",
-			1,
-			new String[][] { { "&Choice 1", "choice1" }, {
-				"C&hoice 2", "choice2" }
-		}, getFieldEditorParent()));
-		addField(
-			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
+	@Override
+	protected Control createContents(Composite parent) {
+		Label label = new Label(parent, SWT.NULL);
+		label.setText(loginText());
+		Button dialogButton = new Button(parent, SWT.NULL);
+		dialogButton.setText(buttonText());
+		return new Composite(parent, SWT.NULL);
+	}
+	
+	private String loginText() {
+		String text = "";
+		if (EduRideBase.whoami() == null) {
+			text = "You are not yet logged in.";
+		} else {
+			text = "You are logged in as " + EduRideBase.whoami() 
+					+ " on domain " + EduRideBase.whereami();
+		}
+		return text;
+	}
+	
+	private String buttonText() {
+		if (EduRideBase.whoami() == null) {
+			return "Login...";
+		} else {
+			return "Change user/domain";
+		}
 	}
 
 	/* (non-Javadoc)

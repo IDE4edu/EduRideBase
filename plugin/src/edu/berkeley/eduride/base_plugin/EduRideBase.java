@@ -25,12 +25,13 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	
 	public static final String PLUGIN_ID = "EduRideBase";
 	public static final String DEFAULT_DOMAIN = "eduride.berkeley.edu";
-	public static final String guestUserName = "Guest User (not logged in)";
+	public static final String guestUserName = "Guest";
 	// The shared instance
 	private static EduRideBase plugin = null;
 	private static UUID workspaceID = null;	
 	private static String domain = DEFAULT_DOMAIN;
 	private static PreferenceStore prefStore = null;
+	private static boolean loggedIn = false;
 	
 	static BundleContext getContext() {
 		return context;
@@ -70,22 +71,27 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		EduRideBase.context = null;
 	}
 	
+	/*
+	 * Returns null iff not logged in
+	 * @return
+	 */
 	public static String whoami() {
 		String username = prefs.get("username", null);
 		// perhaps push login dialog here (but not if they are looking at preferences)
 		// TODO need to distinguish between 'havent authenticated yet' and 'want to remain a guest'
-		if (username == null) {
+		if (username == null && loggedIn) {
 			username = guestUserName;
 		}
 		return username;
 	}
 	
+	public static String whereami() {
+		return domain;
+	}
+	
 	public static long hashID() {
 		return prefs.getLong("authHash", -1);
 	}
-
-
-
 	
 	private boolean isVerified(Object content) {
 		// TODO actually process the content
@@ -134,5 +140,4 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	public IPreferenceStore getPreferenceStore() {
 		return prefStore;
 	}
-
 }
