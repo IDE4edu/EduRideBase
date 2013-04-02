@@ -2,6 +2,9 @@ package edu.berkeley.eduride.base_plugin.prefs;
 
 import org.eclipse.jface.preference.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -9,6 +12,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import edu.berkeley.eduride.base_plugin.EduRideBase;
+import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
 
 /**
  * This class represents a preference page that
@@ -39,6 +43,14 @@ public class EduRidePreferencePage
 		label.setText(loginText());
 		Button dialogButton = new Button(parent, SWT.NULL);
 		dialogButton.setText(buttonText());
+		dialogButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDown(MouseEvent e) {
+				LoginDialog dialog = new LoginDialog();
+				dialog.open();
+				super.mouseDown(e);
+			}
+		});
 		return new Composite(parent, SWT.NULL);
 	}
 	

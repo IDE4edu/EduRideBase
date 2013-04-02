@@ -29,7 +29,6 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	// The shared instance
 	private static EduRideBase plugin = null;
 	private static UUID workspaceID = null;	
-	private static String domain = DEFAULT_DOMAIN;
 	private static PreferenceStore prefStore = null;
 	private static boolean loggedIn = false;
 	
@@ -86,33 +85,36 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	}
 	
 	public static String whereami() {
-		return domain;
+		return prefs.get("domain", DEFAULT_DOMAIN);
 	}
 	
 	public static long hashID() {
 		return prefs.getLong("authHash", -1);
 	}
 	
-	private boolean isVerified(Object content) {
-		// TODO actually process the content
+	private static boolean isVerified(Object content) {
+		// TODO perform legit verification
 		return true;
 	}
 	
-	private boolean authenticate(String username, String password) {
+	public static boolean authenticate(String username, String password, String domain) {
 		boolean success;
 		try {
 			URL url = new URL("https", domain, 80, "login"); // TODO put legit target name
 			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
 			Object content = connection.getContent();
 			success = isVerified(content);
-			prefs.put("username", username);
-			// TODO use legit hash
-			prefs.putInt("authHash", 
-					(username + password + System.currentTimeMillis()).hashCode());
 		} catch (MalformedURLException e) {
 			success = false;
 		} catch (IOException e) {
 			success = false;
+		}
+		if (success) {
+			prefs.put("username", username);
+			// TODO use legit hash
+			prefs.putInt("authHash", 
+					(username + password + System.currentTimeMillis()).hashCode());
+			prefs.put("domain", domain);
 		}
 		return success;
 	}
