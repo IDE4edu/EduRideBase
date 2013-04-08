@@ -5,6 +5,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -39,16 +40,24 @@ public class EduRidePreferencePage
 	
 	@Override
 	protected Control createContents(Composite parent) {
-		Label label = new Label(parent, SWT.NULL);
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = SWT.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		final Label label = new Label(parent, SWT.NULL);
 		label.setText(loginText());
-		Button dialogButton = new Button(parent, SWT.NULL);
+		label.setLayoutData(gridData);
+		final Button dialogButton = new Button(parent, SWT.NULL);
 		dialogButton.setText(buttonText());
+		dialogButton.pack();
 		dialogButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
-				LoginDialog dialog = new LoginDialog();
-				dialog.open();
 				super.mouseDown(e);
+				if(EduRideBase.loginPrompt()) {
+					label.setText(loginText());
+					dialogButton.setText(buttonText());
+					dialogButton.pack();
+				}
 			}
 		});
 		return new Composite(parent, SWT.NULL);
@@ -58,9 +67,11 @@ public class EduRidePreferencePage
 		String text = "";
 		if (EduRideBase.whoami() == null) {
 			text = "You are not yet logged in.";
+		} else if (EduRideBase.whoami().equals(EduRideBase.guestUserName)){
+			text = "You are a guest.";
 		} else {
 			text = "You are logged in as " + EduRideBase.whoami() 
-					+ " on domain " + EduRideBase.whereami();
+					+ " on domain " + EduRideBase.whereami() + ".";
 		}
 		return text;
 	}

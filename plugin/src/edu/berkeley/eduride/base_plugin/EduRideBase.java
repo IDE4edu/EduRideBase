@@ -16,6 +16,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
+
 //import edu.berkeley.eduride.feedbackview.EduRideFeedback;
 
 public class EduRideBase extends AbstractUIPlugin implements IStartup {
@@ -99,15 +101,20 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	
 	public static boolean authenticate(String username, String password, String domain) {
 		boolean success;
-		try {
-			URL url = new URL("https", domain, 80, "login"); // TODO put legit target name
-			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-			Object content = connection.getContent();
-			success = isVerified(content);
-		} catch (MalformedURLException e) {
-			success = false;
-		} catch (IOException e) {
-			success = false;
+		if (username == guestUserName) {
+			success = true;
+		} else {
+//			try {
+//				URL url = new URL("https", domain, 80, "login"); // TODO put legit target name
+//				HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+//				Object content = connection.getContent();
+//				success = isVerified(content);
+//			} catch (MalformedURLException e) {
+//				success = false;
+//			} catch (IOException e) {
+//				success = false;
+//			}
+			success = true;
 		}
 		if (success) {
 			prefs.put("username", username);
@@ -118,7 +125,16 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		}
 		return success;
 	}
-
+	
+	public static boolean loginPrompt() { // return true if OK is pressed
+		LoginDialog dialog = new LoginDialog();
+		dialog.open();
+		return dialog.getReturnCode() == LoginDialog.OK;
+	}
+	
+	public static boolean isLoggedIn() {
+		return loggedIn;
+	}
 	
 	@Override
 	public void earlyStartup() {

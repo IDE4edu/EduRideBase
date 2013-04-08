@@ -48,6 +48,7 @@ public class LoginDialog extends InputDialog {
 	
 	
 	public LoginDialog() {
+		// TODO figure out why the "Domain:" label isn't showing
 		super(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 
 				"EduRide Login", "Domain:", EduRideBase.whereami(), null);
 		setBlockOnOpen(true);
@@ -56,7 +57,7 @@ public class LoginDialog extends InputDialog {
 	@Override
 	protected Control createDialogArea(final Composite parent) {
 		final Composite c = (Composite) super.createDialogArea(parent);
-		final Button b = new Button(c, SWT.CHECK);
+		final Button checkButton = new Button(c, SWT.CHECK);
 		Label label = new Label(c, SWT.NULL);
 		label.setText("Log in:");
 		final Text userInput = new Text(c, SWT.SINGLE | SWT.BORDER);
@@ -66,39 +67,43 @@ public class LoginDialog extends InputDialog {
 		final Text passwordInput = new Text(c, SWT.PASSWORD | SWT.SINGLE | SWT.BORDER);
 		this.passwordInput = passwordInput;
 		if (EduRideBase.whoami() != null) {
-			userInput.setText(EduRideBase.whoami());
+			if (EduRideBase.whoami() == EduRideBase.guestUserName) {
+				checkButton.setSelection(true);
+				userInput.setEnabled(false);
+				passwordInput.setEnabled(false);
+			} else {
+				userInput.setText(EduRideBase.whoami());
+			}
 		}
-		this.guestButton = b;
+		this.guestButton = checkButton;
 		
-		b.addMouseListener(new MouseAdapter() {
+		checkButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
-				userInput.setEnabled(b.getSelection());
-				passwordInput.setEnabled(b.getSelection());
+				userInput.setEnabled(checkButton.getSelection());
+				passwordInput.setEnabled(checkButton.getSelection());
 			}
 		});
-		b.setText("I want to remain a guest");
+		checkButton.setText("I want to remain a guest");
 		label = new Label(c, SWT.NULL);
-		label.setText("hi");
 		this.errorLabel = label;
-		GridData g = new GridData();
-		g.horizontalAlignment = SWT.FILL;
-		g.grabExcessHorizontalSpace = true;
-		userInput.setLayoutData(g);
-		passwordInput.setLayoutData(g);
-		label.setLayoutData(g);
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = SWT.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		userInput.setLayoutData(gridData);
+		passwordInput.setLayoutData(gridData);
+		label.setLayoutData(gridData);
 		getText().setText(EduRideBase.whereami());
 		return c;
 	}
 	
 	@Override
 	protected void okPressed() {
-		boolean guest = false;
-		if (guestButton.getSelection() ||
-				userInput.getText().equals(EduRideBase.guestUserName)) {
-			guest = true;
+		String username = userInput.getText();
+		if (guestButton.getSelection()) {
+			username = EduRideBase.guestUserName;
 		}
-		if (EduRideBase.authenticate(userInput.getText(), passwordInput.getText(), 
+		if (EduRideBase.authenticate(username, passwordInput.getText(), 
 				getText().getText())) {
 			super.okPressed();
 		} else {
