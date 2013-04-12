@@ -15,6 +15,7 @@ import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.prefs.BackingStoreException;
 
 import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
 
@@ -116,13 +117,18 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 //			}
 			success = true;
 		}
-		success = false;
 		if (success) {
 			prefs.put("username", username);
 			// TODO use legit hash
 			prefs.putInt("authHash", 
 					(username + password + System.currentTimeMillis()).hashCode());
 			prefs.put("domain", domain);
+		}
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			e.printStackTrace();
+			success = false;
 		}
 		return success;
 	}
@@ -143,6 +149,12 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		String workspaceIDString = prefs.get("workspaceID", generateWsID());
 		if (workspaceID == null) {
 			workspaceID = UUID.fromString(workspaceIDString);
+			prefs.put("workspaceID", workspaceIDString);
+			try {
+				prefs.flush();
+			} catch (BackingStoreException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
