@@ -92,7 +92,6 @@ public class LoginDialog extends InputDialog {
 		gridData.grabExcessHorizontalSpace = true;
 		userInput.setLayoutData(gridData);
 		passwordInput.setLayoutData(gridData);
-		label.setLayoutData(gridData);
 		getText().setText(EduRideBase.whereami());
 		return c;
 	}
@@ -107,7 +106,8 @@ public class LoginDialog extends InputDialog {
 				getText().getText())) {
 			super.okPressed();
 		} else {
-			errorLabel.setText("Invalid uesrname/password/domain");
+			errorLabel.setText("Invalid username/password/domain");
+			errorLabel.pack();
 			errorLabel.redraw();
 			errorLabel.update();
 		}

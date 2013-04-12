@@ -116,6 +116,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 //			}
 			success = true;
 		}
+		success = false;
 		if (success) {
 			prefs.put("username", username);
 			// TODO use legit hash
