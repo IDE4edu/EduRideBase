@@ -28,6 +28,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	
 	public static final String PLUGIN_ID = "EduRideBase";
 	public static final String DEFAULT_DOMAIN = "eduride.berkeley.edu";
+	// This should function like a proper name, when used in a sentence
 	public static final String GUEST_USER_NAME = "Guest";
 	// The shared instance
 	private static EduRideBase plugin = null;
