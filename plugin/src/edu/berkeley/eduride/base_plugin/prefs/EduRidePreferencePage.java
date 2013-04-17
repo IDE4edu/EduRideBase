@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import edu.berkeley.eduride.base_plugin.EduRideBase;
-import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
 
 /**
  * This class represents a preference page that
@@ -44,43 +43,42 @@ public class EduRidePreferencePage
 		gridData.horizontalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		final Label label = new Label(parent, SWT.NULL);
-		label.setText(loginText());
+		label.setText(statusText());
 		label.setLayoutData(gridData);
-		final Button dialogButton = new Button(parent, SWT.NULL);
-		dialogButton.setText(buttonText());
-		dialogButton.pack();
-		dialogButton.addMouseListener(new MouseAdapter() {
+		
+		final Button loginButton = new Button(parent, SWT.NULL);
+		loginButton.setText(loginText());
+		loginButton.pack();
+		loginButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {
 				super.mouseDown(e);
-				if(EduRideBase.loginPrompt()) {
-					label.setText(loginText());
-					dialogButton.setText(buttonText());
-					dialogButton.pack();
-				}
+				EduRideBase.displayLoginPrompt();
+				label.setText(statusText());
+				loginButton.setText(loginText());
+				loginButton.pack();
 			}
 		});
+		
 		return new Composite(parent, SWT.NULL);
 	}
 	
-	private String loginText() {
-		String text = "";
-		if (EduRideBase.whoami() == null) {
-			text = "You are not yet logged in.";
-		} else if (EduRideBase.whoami().equals(EduRideBase.guestUserName)){
-			text = "You are a guest.";
-		} else {
-			text = "You are logged in as " + EduRideBase.whoami() 
-					+ " on domain " + EduRideBase.whereami() + ".";
+	private String statusText() {
+		if (EduRideBase.getRemainGuestStatus()) {
+			return "You have choosen to remain a guest.";
+		} else if (EduRideBase.currentlyAuthenticated()) {
+			return "You are logged in as " + EduRideBase.getUsernameStored() 
+					+ " on domain " + EduRideBase.getDomain() + ".";
+		} else {   
+			return "You are not yet logged in.";
 		}
-		return text;
 	}
 	
-	private String buttonText() {
-		if (EduRideBase.whoami() == null) {
-			return "Login...";
-		} else {
+	private String loginText() {
+		if (EduRideBase.currentlyAuthenticated()) {
 			return "Change user/domain";
+		} else {
+			return "Login...";
 		}
 	}
 
