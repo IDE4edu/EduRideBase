@@ -22,7 +22,6 @@ import edu.berkeley.eduride.base_plugin.EduRideBase;
 public class LoginDialog extends InputDialog {
 	private Text userInput;
 	private Text passwordInput;
-	private Text domainInput;
 	private Label errorLabel;
 	private Button guestButton;
 
@@ -81,11 +80,6 @@ public class LoginDialog extends InputDialog {
 		final Text passwordInput = new Text(c, SWT.PASSWORD | SWT.SINGLE | SWT.BORDER);
 		this.passwordInput = passwordInput;
 
-		final Text domainInput = new Text(c, SWT.SINGLE | SWT.BORDER);
-		this.domainInput = domainInput;
-		domainInput.setText(EduRideBase.getDomain());
-		domainInput.setEnabled(false);
-
 		if (EduRideBase.getRemainGuestStatus()) {
 			checkButton.setSelection(true);
 			userInput.setEnabled(false);
@@ -105,16 +99,16 @@ public class LoginDialog extends InputDialog {
 	}
 	
 	
-	public boolean choosenGuest() {
+	public boolean chosenGuest() {
 		return guestButton.getSelection();
 	}
 	
 	@Override
 	protected void okPressed() {
-		if (choosenGuest()) {
+		if (chosenGuest()) {
 			return;
 		} else if (EduRideBase.authenticate(userInput.getText(),
-				passwordInput.getText(), domainInput.getText())) {
+				passwordInput.getText(), getText().getText())) {
 			super.okPressed();
 		} else {
 			errorLabel.setText("Invalid username/password for domain");

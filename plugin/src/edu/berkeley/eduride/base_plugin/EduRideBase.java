@@ -181,7 +181,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		LoginDialog dialog = new LoginDialog();
 		if (dialog.open() == org.eclipse.jface.window.Window.OK) {
 			// authenticate should have set the username, authtoken, etc...
-			if (dialog.choosenGuest()) {
+			if (dialog.chosenGuest()) {
 				chooseGuestStatus();
 			}
 		} else {
