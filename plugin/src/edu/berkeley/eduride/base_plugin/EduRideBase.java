@@ -40,7 +40,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	// Authentication status
 	private static int UNKNOWN = 0;
 	private static int LOGGED_IN = 1;
-	private static int CHOOSEN_GUEST = 2;
+	private static int CHOSEN_GUEST = 2;
 	private static int userStatus = UNKNOWN;
 
 	
@@ -82,11 +82,6 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		EduRideBase.context = null;
 	}
 	
-	
-	
-	
-	
-	
 	@Override
 	public void earlyStartup() {
 		// if no workspace id exists, this makes sure to generate it
@@ -101,7 +96,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 			}
 		}
 		if (prefs.getBoolean("choosenGuest", false)) {
-			userStatus = CHOOSEN_GUEST;
+			userStatus = CHOSEN_GUEST;
 		}
 	}
 
@@ -181,9 +176,8 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		LoginDialog dialog = new LoginDialog();
 		if (dialog.open() == org.eclipse.jface.window.Window.OK) {
 			// authenticate should have set the username, authtoken, etc...
-			if (dialog.chosenGuest()) {
-				chooseGuestStatus();
-			}
+			// if (dialog.chosenGuest()) { // can't do this: dialog has been disposed
+			chooseGuestStatus();
 		} else {
 			// cancelled...  do nothing I guess?
 		}
@@ -192,7 +186,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 
 	
 	// this won't force a login
-	// Checking this *doesn't* change whether user has choosen to be guest... I guess?
+	// Checking this *doesn't* change whether user has chosen to be guest... I guess?
 	public static boolean currentlyAuthenticated() {
 		boolean valid = false;
 		String authToken = getAuthToken();
@@ -201,7 +195,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		}
 		if (valid) {
 			userStatus = LOGGED_IN;
-		} else if (userStatus != CHOOSEN_GUEST) {
+		} else if (userStatus != CHOSEN_GUEST) {
 			// not sure why we'd ever be here is user had choose to be guest, though.
 			userStatus = UNKNOWN;
 		}
@@ -234,6 +228,11 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 			setDomain(domain);
 			userStatus = LOGGED_IN;
 			setRemainGuestStatus(false);
+			try {
+				prefs.flush();
+			} catch (BackingStoreException e) {
+				e.printStackTrace();
+			}
 		} else {
 			// should we do a logOut() here?   I guess not?
 		}
@@ -246,7 +245,6 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		return success;
 	}
 
-
 	public static void logOut() {
 		clearUsernameStored();
 		clearAuthToken();
@@ -254,10 +252,6 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		setRemainGuestStatus(false);   // hm, I guess?
 
 	}
-	
-
-
-
 	
 	/////////////////////////////
 	// USER NAME stuff
@@ -280,7 +274,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	 */
 	public static String getDisplayNameMaybeLogin() {
 		String username;
-		if (userStatus == CHOOSEN_GUEST) {
+		if (userStatus == CHOSEN_GUEST) {
 			return GUEST_USER_NAME;
 		}
 		username = getUsernameStored();
@@ -290,7 +284,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 			displayLoginPrompt();			
 		}
 		
-		if (userStatus == CHOOSEN_GUEST) {
+		if (userStatus == CHOSEN_GUEST) {
 			return GUEST_USER_NAME;
 		} else if (userStatus == LOGGED_IN) {
 			return getUsernameStored();
@@ -313,7 +307,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	 */
 	public static String getUsernameNoLogin() {
 
-		if (userStatus == CHOOSEN_GUEST) {
+		if (userStatus == CHOSEN_GUEST) {
 			return GUEST_USER_NAME;
 		}
 		String username = getUsernameStored();
@@ -329,7 +323,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	
 	
 	public static void chooseGuestStatus() {
-		userStatus = CHOOSEN_GUEST;
+		userStatus = CHOSEN_GUEST;
 		setRemainGuestStatus(true);
 		clearUsernameStored();
 		clearAuthToken();

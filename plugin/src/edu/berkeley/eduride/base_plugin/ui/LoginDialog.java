@@ -1,19 +1,14 @@
 package edu.berkeley.eduride.base_plugin.ui;
 
-import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
@@ -48,7 +43,6 @@ public class LoginDialog extends InputDialog {
 	
 	
 	public LoginDialog() {
-		// TODO figure out why the "Domain:" label isn't showing
 		super(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 
 				"EduRide Login", "Domain:", EduRideBase.getDomain(), null);
 		setBlockOnOpen(true);
@@ -106,7 +100,8 @@ public class LoginDialog extends InputDialog {
 	@Override
 	protected void okPressed() {
 		if (chosenGuest()) {
-			return;
+			EduRideBase.chooseGuestStatus();
+			super.okPressed();
 		} else if (EduRideBase.authenticate(userInput.getText(),
 				passwordInput.getText(), getText().getText())) {
 			super.okPressed();

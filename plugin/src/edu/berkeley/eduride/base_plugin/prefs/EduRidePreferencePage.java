@@ -65,7 +65,7 @@ public class EduRidePreferencePage
 	
 	private String statusText() {
 		if (EduRideBase.getRemainGuestStatus()) {
-			return "You have choosen to remain a guest.";
+			return "You have chosen to remain a guest.";
 		} else if (EduRideBase.currentlyAuthenticated()) {
 			return "You are logged in as " + EduRideBase.getUsernameStored() 
 					+ " on domain " + EduRideBase.getDomain() + ".";
