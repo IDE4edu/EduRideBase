@@ -11,10 +11,8 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -171,13 +169,9 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	
 	// Will always display a login prompt, no matter what the current authentication ?
 	public static void displayLoginPrompt() { 
-		// TODO -- needs fixin?
-		// return true if OK is pressed
 		LoginDialog dialog = new LoginDialog();
 		if (dialog.open() == org.eclipse.jface.window.Window.OK) {
-			// authenticate should have set the username, authtoken, etc...
-			// if (dialog.chosenGuest()) { // can't do this: dialog has been disposed
-			chooseGuestStatus();
+			// user should be authenticated or have chosen to be guest if here.
 		} else {
 			// cancelled...  do nothing I guess?
 		}
@@ -191,7 +185,8 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		boolean valid = false;
 		String authToken = getAuthToken();
 		if (!empty(authToken)) {
-			// TODO -- check with server to see if it has expired, set valid = true if still ok.
+			// TODO -- confirmAuthentication(authToken);
+			// check with server to see if it has expired, set valid = true if still ok.
 		}
 		if (valid) {
 			userStatus = LOGGED_IN;

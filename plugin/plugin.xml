@@ -21,7 +21,8 @@
    </extension>
    <extension
          point="org.eclipse.ui.startup">
-      <startup></startup>
+      <startup
+            class="edu.berkeley.eduride.base_plugin.EduRideBase"></startup>
    </extension>
 
 </plugin>
