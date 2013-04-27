@@ -32,7 +32,6 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	public static final String DEFAULT_DOMAIN = "eduride.berkeley.edu";
 	// This should function like a proper name, when used in a sentence
 	private static final String GUEST_USER_NAME = "Guest";
-	private static UUID workspaceID = null;	
 	private static PreferenceStore prefStore = null;
 	
 	// Authentication status
@@ -70,6 +69,8 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {		
 		EduRideBase.context = bundleContext;
+		// call this again in case the user disabled early startup, hey.
+		earlyStartup();
 	}
 
 	/*
@@ -80,32 +81,24 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		EduRideBase.context = null;
 	}
 	
+	
 	@Override
 	public void earlyStartup() {
 		// if no workspace id exists, this makes sure to generate it
-		String workspaceIDString = prefs.get("workspaceID", generateWsID());
-		if (workspaceID == null) {
-			workspaceID = UUID.fromString(workspaceIDString);
-			prefs.put("workspaceID", workspaceIDString);
-			try {
-				prefs.flush();
-			} catch (BackingStoreException e) {
-				e.printStackTrace();
-			}
+		if (empty(getWorkspaceID())) {
+			setWorkspaceID(generateWorkspaceID());
+			flushPrefs();
 		}
-		if (prefs.getBoolean("choosenGuest", false)) {
+		if (getRemainGuestStatus()) {
 			userStatus = CHOSEN_GUEST;
 		}
 	}
 
-	private static String generateWsID() {
-		workspaceID = UUID.randomUUID();
-		return workspaceID.toString();
+	
+	private static String generateWorkspaceID() {
+		return UUID.randomUUID().toString();
 	}
 
-	public static String getWorkspaceID() {
-		return workspaceID.toString();
-	}
 
 	
 	public IPreferenceStore getPreferenceStore() {
@@ -116,7 +109,16 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	
 	/////////////////////////////////////////////////
 	////////  State (in prefs)
+
 	
+	public static String getWorkspaceID() {
+		return(prefs.get("workspaceID", ""));
+	}
+	
+	private static void setWorkspaceID(String wsID) {
+		prefs.put("workspaceID", wsID);
+	}
+
 	public static String getUsernameStored() {
 		return (prefs.get("username", ""));
 	}
@@ -162,6 +164,16 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		return (s == null || s == "");
 	}
 
+	private static boolean flushPrefs() {
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			// uh oh.
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 	
 	//////////////////////////////////////////////////
 	///////// AUTH stuff
@@ -199,12 +211,12 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 
 	
 	// Successful authentication means user doesn't want to be a guest anymore
-	public static boolean authenticate(String username, String password,
-			String domain) {
-		boolean success = false;
+	public static void authenticate(String username, String password,
+			String domain) throws EduRideAuthFailure {
 		String newAuthToken = null;
 
 		// TODO -- should warn if username is guestname somehow?  Nah, I don't think so, since guestname can change maybe
+		// throw the exception if we fail, with a good message
 		
 //		try {
 //			URL url = new URL("https", domain, 80, "login"); // TODO put legit target name
@@ -217,27 +229,20 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 //		} catch (IOException e) {
 //			success = false;
 //		}
-		if (success) {
-			setUsernameStored(username);
-			setAuthToken(newAuthToken);
-			setDomain(domain);
-			userStatus = LOGGED_IN;
-			setRemainGuestStatus(false);
-			try {
-				prefs.flush();
-			} catch (BackingStoreException e) {
-				e.printStackTrace();
-			}
-		} else {
-			// should we do a logOut() here?   I guess not?
+
+		// should we logOut() if the authentication failed for some reason?
+
+		setUsernameStored(username);
+		setAuthToken(newAuthToken);
+		setDomain(domain);
+		userStatus = LOGGED_IN;
+		setRemainGuestStatus(false);
+		if (!flushPrefs()) {
+			// I guess? you can't authenticate if we can't store your username?
+			throw new EduRideAuthFailure(
+					"Can't store your user name in the Eclipse preferences store... uh oh");
 		}
-		try {
-			prefs.flush();
-		} catch (BackingStoreException e) {
-			e.printStackTrace();
-			success = false;
-		}
-		return success;
+
 	}
 
 	public static void logOut() {
@@ -245,7 +250,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		clearAuthToken();
 		userStatus = UNKNOWN;
 		setRemainGuestStatus(false);   // hm, I guess?
-
+		flushPrefs();
 	}
 	
 	/////////////////////////////
@@ -322,6 +327,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 		setRemainGuestStatus(true);
 		clearUsernameStored();
 		clearAuthToken();
+		flushPrefs();
 	}
 	
 	

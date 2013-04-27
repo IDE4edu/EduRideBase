@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+import edu.berkeley.eduride.base_plugin.EduRideAuthFailure;
 import edu.berkeley.eduride.base_plugin.EduRideBase;
 
 public class LoginDialog extends InputDialog {
@@ -96,22 +97,24 @@ public class LoginDialog extends InputDialog {
 	public boolean chosenGuest() {
 		return guestButton.getSelection();
 	}
-	
+
 	@Override
 	protected void okPressed() {
 		if (chosenGuest()) {
 			EduRideBase.chooseGuestStatus();
 			super.okPressed();
-		} else if (EduRideBase.authenticate(userInput.getText(),
-				passwordInput.getText(), getText().getText())) {
-			super.okPressed();
 		} else {
-			errorLabel.setText("Invalid username/password for domain");
-			passwordInput.clearSelection();
-			errorLabel.pack();
-			errorLabel.redraw();
-			errorLabel.update();
+			try {
+				EduRideBase.authenticate(userInput.getText(),
+						passwordInput.getText(), getText().getText());
+			} catch (EduRideAuthFailure e) {
+				errorLabel.setText(e.getLocalizedMessage());
+				passwordInput.clearSelection();
+				errorLabel.pack();
+				errorLabel.redraw();
+				errorLabel.update();
+			}
+			super.okPressed();
 		}
-
 	}
 }
