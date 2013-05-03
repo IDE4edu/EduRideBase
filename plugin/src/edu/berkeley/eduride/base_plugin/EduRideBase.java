@@ -7,20 +7,23 @@ import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
 import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
 
+
 //import edu.berkeley.eduride.feedbackview.EduRideFeedback;
 
-public class EduRideBase extends AbstractUIPlugin implements IStartup {
+public class EduRideBase extends AbstractUIPlugin {
 
 	private static BundleContext context;
 	private static IEclipsePreferences prefs;
@@ -49,6 +52,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	 * The constructor
 	 */
 	public EduRideBase() {
+		super();
 		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 		prefStore = new PreferenceStore(prefs.absolutePath());
 		plugin = this;
@@ -69,8 +73,28 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {		
 		EduRideBase.context = bundleContext;
-		// call this again in case the user disabled early startup, hey.
-		earlyStartup();
+		
+		// Note: if we need stuff at 'earlyStartup', then it has to go into 
+		// the EarlyStartup class.  Sigh, most of the functionality in this activator should
+		// go there.
+		
+		if (empty(getWorkspaceID())) {
+			setWorkspaceID(generateWorkspaceID());
+			flushPrefs();
+		}
+
+		
+		if (getRemainGuestStatus()) {
+			userStatus = CHOSEN_GUEST;
+		}
+		
+
+		
+		// start up logger here, why not
+		//Bundle b = Platform.getBundle("edu.berkeley.eduride.loggerplugin");
+		//System.out.println("eduridebase starting logger");
+		//b.start();
+
 	}
 
 	/*
@@ -82,17 +106,7 @@ public class EduRideBase extends AbstractUIPlugin implements IStartup {
 	}
 	
 	
-	@Override
-	public void earlyStartup() {
-		// if no workspace id exists, this makes sure to generate it
-		if (empty(getWorkspaceID())) {
-			setWorkspaceID(generateWorkspaceID());
-			flushPrefs();
-		}
-		if (getRemainGuestStatus()) {
-			userStatus = CHOSEN_GUEST;
-		}
-	}
+
 
 	
 	private static String generateWorkspaceID() {
