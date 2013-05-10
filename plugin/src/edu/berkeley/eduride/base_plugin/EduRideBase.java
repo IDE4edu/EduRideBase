@@ -169,7 +169,7 @@ public class EduRideBase extends AbstractUIPlugin {
 		return prefs.get("domain", DEFAULT_DOMAIN);
 	}
 	
-	public static void setDomain(String domain) {
+	private static void setDomain(String domain) {
 		prefs.put("domain", domain);
 	}
 
