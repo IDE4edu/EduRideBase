@@ -10,3 +10,4 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: edu.berkeley.eduride.base_plugin,
  org.json
+Import-Package: org.eclipse.core.resources
