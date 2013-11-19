@@ -348,6 +348,13 @@ public class EduRideBase extends AbstractUIPlugin {
 	private static String nonAuthenticatedDisplayUsername(String username) {
 		return username + " (not authenticated)";
 	}
+
+	// used in the feedback model to figure out which testclass to use for a source file
+	public static String getCurrentStep() {
+		// TODO make this work for situations where a single source file has multiple test classes (for different activities/steps)
+		// this step key is passed to FeedbackModelProvider.setup as *.isa files are parsed.
+		return null;
+	}
 	
 	
 
