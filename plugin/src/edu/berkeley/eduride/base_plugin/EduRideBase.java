@@ -349,7 +349,19 @@ public class EduRideBase extends AbstractUIPlugin {
 		return username + " (not authenticated)";
 	}
 
+	
+	
+	//////////////
+	
+	
+	
+	
 	// used in the feedback model to figure out which testclass to use for a source file
+	// What is the right thing here?  Easy when navigator view is open, but what about when it isn't?  
+	//   - use the active project?  Is this specific enough for situations where source class doesn't uniquely identify test class?
+	//   - editor?  No, this doesn't help anything, we already have the source class...
+	//   - do this a different way and say which test classes can work for any source class,
+	//     so they can all be shown?
 	public static String getCurrentStep() {
 		// TODO make this work for situations where a single source file has multiple test classes (for different activities/steps)
 		// this step key is passed to FeedbackModelProvider.setup as *.isa files are parsed.
