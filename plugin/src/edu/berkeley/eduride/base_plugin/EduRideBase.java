@@ -7,11 +7,16 @@ import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
@@ -348,6 +353,61 @@ public class EduRideBase extends AbstractUIPlugin {
 	private static String nonAuthenticatedDisplayUsername(String username) {
 		return username + " (not authenticated)";
 	}
+
+	
+	
+	
+	
+	////////////
+
+	// ////shared images
+
+	/**
+	 * setup shared images
+	 */
+
+
+	public static final String CAR_RED_IMAGE = "icons/car-red.gif";
+
+
+	@Override
+	protected void initializeImageRegistry(ImageRegistry registry) {
+		super.initializeImageRegistry(registry);
+		
+		
+		putImageIntoRegistry(CAR_RED_IMAGE, registry);
+	}
+	
+	
+	
+	////////// 
+	// how to get an image
+
+	public static ImageDescriptor getImageDescriptor(String imgID) {
+		// makes use of fact that img id is a relative path
+		return imageDescriptorFromPlugin(PLUGIN_ID, imgID);
+	}
+
+	
+	public static Image getImage(String imageID) {
+		ImageRegistry registry = getDefault().getImageRegistry();
+		return (registry.get(imageID));
+	}
+
+
+
+	//////
+
+	
+	private void putImageIntoRegistry(String pathStr, ImageRegistry registry) {
+		Bundle bundle = Platform.getBundle(PLUGIN_ID);
+
+		ImageDescriptor selection = ImageDescriptor.createFromURL(FileLocator
+				.find(bundle, new Path(pathStr), null));
+		registry.put(pathStr, selection);
+	}
+
+
 
 	
 	
