@@ -13,12 +13,20 @@ import org.eclipse.ui.PlatformUI;
 public class IPartListenerInstaller {
 
 	// returns an error string or null if aok
-	public static String installOnWorkbench(IPartListener2 listener) {
+	public static String installOnWorkbench(IPartListener2 listener, String installer) {
 
 		try {
 			ArrayList<IWorkbenchPage> pages = getWorkbenchPages();
+			IWorkbenchPage lastpage = null;
 			for (IWorkbenchPage page : pages) {
 				installOnPage(page, listener);
+				lastpage = page;
+			}
+			if (lastpage != null) {
+				System.out.println("IPartListener for " + installer
+						+ " last installed on " + lastpage.getLabel());
+			} else {
+				System.out.println("IPartListener didn't find any non-null workbench pages...");
 			}
 		} catch (Exception e) {
 			return e.getMessage();
@@ -26,16 +34,16 @@ public class IPartListenerInstaller {
 		return null;
 
 	}
-	
-	
-	
-	private static ArrayList<IWorkbenchPage> getWorkbenchPages() throws Exception {
-		
+
+	private static ArrayList<IWorkbenchPage> getWorkbenchPages()
+			throws Exception {
+
 		ArrayList<IWorkbenchPage> output = new ArrayList<IWorkbenchPage>();
-		
+
 		String errString = "";
 		try {
-			IWorkbench workbench = PlatformUI.getWorkbench(); // might throw exception
+			IWorkbench workbench = PlatformUI.getWorkbench(); // might throw
+																// exception
 			IWorkbenchWindow windows[] = null;
 			if (workbench != null) {
 				windows = workbench.getWorkbenchWindows();
@@ -52,7 +60,7 @@ public class IPartListenerInstaller {
 							output.add(page);
 							installedOnAPage = true;
 						}
-						// window.getPartService().addPartListener(this); 
+						// window.getPartService().addPartListener(this);
 						// more modernish
 					}
 					if (!installedOnAPage) {
@@ -67,21 +75,17 @@ public class IPartListenerInstaller {
 			throw new Exception(errString);
 		}
 
-		//return (errString == "" ? null : errString);
+		// return (errString == "" ? null : errString);
 		return output;
 	}
-	
+
 	// error check this?
-	public static void installOnPage(IWorkbenchPage page, IPartListener2 listener) {
+	public static void installOnPage(IWorkbenchPage page,
+			IPartListener2 listener) {
 		page.addPartListener(listener);
-		System.out.println("IPartListener installed on " + page.getLabel());
 	}
 
-
-
-
-/////////////////////////////
-	
+	// ///////////////////////////
 
 	public static ArrayList<IEditorPart> getCurrentEditors() {
 		try {
@@ -103,8 +107,5 @@ public class IPartListenerInstaller {
 		}
 
 	}
-	
-	
-	
-	
+
 }
