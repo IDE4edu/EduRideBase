@@ -10,7 +10,9 @@ public class EarlyStartup implements IStartup {
 	
 	@Override
 	public void earlyStartup() {
-		// TODO Auto-generated method stub
+
+		EduRideBase.getContext();  //just a call to get EduRideBase loaded
+		
 		
 		// if no workspace id exists, this makes sure to generate it
 		// arg, to use this we have to move all the prefs, etc., here from EduRideBase, 
