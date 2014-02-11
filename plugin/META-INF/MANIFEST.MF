@@ -15,4 +15,5 @@ Export-Package: edu.berkeley.eduride.base_plugin,
  edu.berkeley.eduride.base_plugin.util,
  org.json
 Import-Package: edu.berkeley.eduride.base_plugin.model,
- org.eclipse.core.resources
+ org.eclipse.core.resources,
+ org.eclipse.jdt.core
