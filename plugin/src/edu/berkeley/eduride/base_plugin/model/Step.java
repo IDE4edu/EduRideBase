@@ -5,8 +5,12 @@ import java.io.File;
 import javax.security.auth.callback.LanguageCallback;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 
 //Andy Carle, Berkeley Institute of Design, UC Berkeley
 
@@ -122,11 +126,14 @@ public class Step {
 	}
 	
 	// TESTCLASS
+	// the <testclass> is supposed to the qualified name (with packages, separated by periods)
+	//  of the junit test class for this source file.  Not a path name, since these
+	//  might be in jars (without source).
 	String testclass;
 	//private File testclassFile = null;
 	private IFile testclassIFile = null;
 	
-	public String getTestClass() {
+	public String getTestClassQualifiedName() {
 		return testclass;
 	}
 
@@ -135,39 +142,67 @@ public class Step {
 		// it either doesn't exist or is just whitespace
 		return ((testclass != null) && !("".equalsIgnoreCase(testclass.trim())));
 	}
-	
-	public IFile getTestClassIFile() {
-		if (testclassIFile == null) {
-			Path path = new Path(getProjectName() + getTestClass());
-			testclassIFile = ResourcesPlugin.getWorkspace().getRoot()
-					.getFile(path);
-		}
-		return testclassIFile;
-	}
+
+//Moving to qualified names (package.class) means this is hard to figure out?
+//	public IFile getTestClassIFile() {
+//		if (testclassIFile == null) {
+//			Path path = new Path(getProjectName() + getTestClassQualifiedName());
+//			testclassIFile = ResourcesPlugin.getWorkspace().getRoot()
+//					.getFile(path);
+//		}
+//		return testclassIFile;
+//	}
 
 	
 	// LAUNCH CONFIG
+	//  path to a .launch file
 	String launchConfig;
 	public String getLaunchConfig() {
 		return launchConfig;
 	}
 	
-	public boolean hasTests() {
+	public boolean hasLaunchConfig() {
 		return ((launchConfig != null) && (!(launchConfig.equals(""))));
 	}
 	
 
 	// LAUNCH NAME
+	//  this goes into the button string
 	String launchButtonName;
 	public String getLaunchButtonName() {
 		return launchButtonName;
 	}
 	
+	
+	
+	
 	// PROJECT NAME
-	String projectName;
+	String projectName = null;
 	public String getProjectName() {
 		return projectName;
 	}
+	
+	IProject iproj = null;
+	IJavaProject ijavaproj = null;
+	// sets both iproj and ijavaproj
+	public void setIProject(IProject iproj) {
+		this.iproj = iproj;
+		try {
+			if (iproj.hasNature(JavaCore.NATURE_ID)) {
+				ijavaproj = JavaCore.create(iproj);
+			}
+		} catch (CoreException e) {
+			// well, no Java nature, lets say...
+			// exceptions will be thrown if we need ijavaproj to be non-null...
+		}
+	}
+	public IProject getIProject() {
+		return iproj;
+	}
+	public IJavaProject getIJavaProject() {
+		return ijavaproj;
+	}
+	
 	
 	// we assume all strings have been trimmed already.
 	public Step(
@@ -219,6 +254,6 @@ public class Step {
 	public String toString() {
 		return getName() + " (" + type + ":" + getProjectName() + ")"; 
 	}
-	
+
 
 }

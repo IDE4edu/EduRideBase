@@ -3,6 +3,7 @@ package edu.berkeley.eduride.base_plugin.model;
 import java.util.ArrayList;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.widgets.Group;
 
 
@@ -15,16 +16,32 @@ public class Activity implements Comparable<Activity> {
 	String subCategory;
 	int sortOrder;
 	ArrayList<Step> steps;
-	public IFile isaFile;
+	
+	
+	
+	private IFile isaFile;
+	private IProject iProj;
 
 	public IFile getIsaFile() {
 		return isaFile;
 	}
-
+	
 	public void setIsaFile(IFile isaFile) {
 		this.isaFile = isaFile;
 	}
 
+	public IProject getIProject() {
+		return iProj;
+	}
+	
+	public void setIProject(IProject iProj) {
+		this.iProj = iProj;
+	}
+	
+	
+	
+	
+	
 	public Activity(String projectName, String intro, String name, ArrayList<Step> steps,
 			String category, String subCategory, String sortOrder) {
 		this.projectName = projectName;

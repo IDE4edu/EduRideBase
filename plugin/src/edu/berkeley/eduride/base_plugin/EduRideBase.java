@@ -61,9 +61,12 @@ public class EduRideBase extends AbstractUIPlugin {
 	 */
 	public EduRideBase() {
 		super();
+		
 		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 		prefStore = new PreferenceStore(prefs.absolutePath());
 		plugin = this;
+		
+		
 	}
 
 	/**
@@ -86,11 +89,6 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		EduRideBase.context = bundleContext;
 
-		// Note: if we need stuff at 'earlyStartup', then it has to go into
-		// the EarlyStartup class. Sigh, most of the functionality in this
-		// activator should
-		// go there.
-
 		if (empty(getWorkspaceID())) {
 			setWorkspaceID(generateWorkspaceID());
 			flushPrefs();
@@ -102,13 +100,12 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		startOtherPlugins();
 
-		// start up logger here, why not
-		// Bundle b = Platform.getBundle("edu.berkeley.eduride.loggerplugin");
-		// System.out.println("eduridebase starting logger");
-		// b.start();
+		// TODO process workspace, looking for ISA files.
 
 	}
 
+	
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -405,44 +402,27 @@ public class EduRideBase extends AbstractUIPlugin {
 		//System.out.println("POINT: " + point.getLabel() + " ... " + point.getSchemaReference());
 		IExtension[] extensions = point.getExtensions();
 
-		System.out.println("BASE: starting " + extensions.length + " extensions...");
+		System.out.println("EDURIDE BASE: starting " + extensions.length + " extensions...");
 		for (IExtension extension : extensions) {
 			IConfigurationElement[] configElements = extension
 					.getConfigurationElements();
 			for (IConfigurationElement configElement : configElements) {
 				try {
-					IStartupSync starter = (IStartupSync) configElement
-							.createExecutableExtension(STARTUP_EXTENSION_POINT_CLASS_ATTRIBUTE);
+					// If the following line throws a crazy thread exception, your plugin is 
+					// probably trying to do UI stuff and can't, at least not in the thread
+					// where this is called.  See the editor-overlay stuff for running
+					// in the UI thread
+					IStartupSync starter = (IStartupSync) configElement.createExecutableExtension(STARTUP_EXTENSION_POINT_CLASS_ATTRIBUTE);
 					starter.install();
-					System.out.println("Started plugin: " + extension.getLabel());
+					System.out.println("  Started plugin: " + extension.getLabel());
 				} catch (CoreException e) {
-					// TODO Auto-generated catch block
 					System.err
-							.println("Whoa, problems starting up plugin: " + extension.getLabel());
+							.println("  Whoa, problems starting up plugin: " + extension.getLabel());
 				}
 			}
 		}
 
 		// EdurideOverlayActivator.getDefault();
-	}
-
-	// used in the feedback model to figure out which testclass to use for a
-	// source file
-	// What is the right thing here? Easy when navigator view is open, but what
-	// about when it isn't?
-	// - use the active project? Is this specific enough for situations where
-	// source class doesn't uniquely identify test class?
-	// - editor? No, this doesn't help anything, we already have the source
-	// class...
-	// - do this a different way and say which test classes can work for any
-	// source class,
-	// so they can all be shown?
-	public static String getCurrentStep() {
-		// TODO make this work for situations where a single source file has
-		// multiple test classes (for different activities/steps)
-		// this step key is passed to FeedbackModelProvider.setup as *.isa files
-		// are parsed.
-		return null;
 	}
 
 }

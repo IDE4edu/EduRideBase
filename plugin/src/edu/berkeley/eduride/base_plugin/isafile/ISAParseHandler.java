@@ -2,6 +2,7 @@ package edu.berkeley.eduride.base_plugin.isafile;
 
 import java.util.ArrayList;
 
+import org.eclipse.core.resources.IProject;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -10,7 +11,7 @@ import edu.berkeley.eduride.base_plugin.model.Activity;
 import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.model.Step.StepType;
 
-public class ISAHandler extends DefaultHandler {
+public class ISAParseHandler extends DefaultHandler {
 	public static final String isaTag = "isa";
 	public static final String stepTag = "exercise";
 	public static final String categoryTag = "category";
@@ -35,7 +36,14 @@ public class ISAHandler extends DefaultHandler {
 	}
 
 	private Activity act;
-	public String projectName;
+	private String projectName;
+	public void setProjectName(String projectName) {
+		this.projectName = projectName;
+	}
+	private IProject iproj;
+	public void setIProject(IProject iproj) {
+		this.iproj = iproj;
+	}
 
 	public Activity getActivity() {
 		return act;
@@ -85,8 +93,10 @@ public class ISAHandler extends DefaultHandler {
 			throws SAXException {
 		String s = buffer.toString().trim();
 		if (qName.equalsIgnoreCase(stepTag)) {
-			steps.add(new Step(projectName, name, source, type, intro, testclass,
-					launch, launchButtonName));
+			Step newstep = new Step(projectName, name, source, type, intro, testclass,
+					launch, launchButtonName);
+			newstep.setIProject(iproj);
+			steps.add(newstep);
 			reset(false);
 		} else if (!inStep) {
 			if (qName.equalsIgnoreCase(introTag)) {

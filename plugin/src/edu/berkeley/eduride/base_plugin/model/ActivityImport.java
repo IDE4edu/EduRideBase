@@ -21,6 +21,11 @@ import org.eclipse.ui.dialogs.IOverwriteQuery;
 
 import edu.berkeley.eduride.base_plugin.EduRideBase;
 
+
+/**
+ * Deals with bringing in archived Projects (that contain ISAs) into eclipse.
+ * Mostly used by the navigator plugin too import projects from eduride.berkeley.edu
+ */
 public class ActivityImport {
 
 	private String name;
@@ -55,6 +60,7 @@ public class ActivityImport {
 
 	static public File getImportRoot() {
 		if (root == null) {
+			// into the tempdir
 			String tmp = System.getProperty("java.io.tmpdir");
 			File newroot = new File(tmp, DEFAULT_ROOT_NAME + File.separator);
 			if (newroot.exists() || newroot.mkdir()) {
