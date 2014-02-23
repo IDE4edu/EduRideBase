@@ -36,5 +36,13 @@
             value="false">
       </persistent>
    </extension>
+   <extension
+         point="org.eclipse.ui.console.consoleFactories">
+      <consoleFactory
+            class="edu.berkeley.eduride.base_plugin.util.Console"
+            icon="icons/car-red.gif"
+            label="EduRide Console">
+      </consoleFactory>
+   </extension>
 
 </plugin>
