@@ -23,10 +23,9 @@ public class IPartListenerInstaller {
 				lastpage = page;
 			}
 			if (lastpage != null) {
-				System.out.println("IPartListener for " + installer
-						+ " last installed on " + lastpage.getLabel());
+				Console.msg("IPartListener for " + installer	+ " last installed on " + lastpage.getLabel());
 			} else {
-				System.out.println("IPartListener didn't find any non-null workbench pages...");
+				Console.err("IPartListener didn't find any non-null workbench pages...");
 			}
 		} catch (Exception e) {
 			return e.getMessage();
@@ -64,7 +63,8 @@ public class IPartListenerInstaller {
 						// more modernish
 					}
 					if (!installedOnAPage) {
-						errString += "No non-null pages in any workbench window. ";
+						// darn, we got to try again here... arg.
+						errString += "IPartListener: No non-null pages in any workbench window. ";
 					}
 				}
 			}

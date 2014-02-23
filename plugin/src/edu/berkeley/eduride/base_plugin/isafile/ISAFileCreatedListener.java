@@ -9,6 +9,11 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 
+/**
+ * wha? 
+ * @author nate
+ *
+ */
 public class ISAFileCreatedListener  implements IElementChangedListener {
 		
 		public ISAFileCreatedListener() {

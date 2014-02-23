@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -27,7 +29,9 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import edu.berkeley.eduride.base_plugin.isafile.ISAVisitor;
 import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
+import edu.berkeley.eduride.base_plugin.util.Console;
 
 //import edu.berkeley.eduride.feedbackview.EduRideFeedback;
 
@@ -100,8 +104,15 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		startOtherPlugins();
 
-		// TODO process workspace, looking for ISA files.
-
+		// process workspace, looking for ISA files.
+		ISAVisitor isaVisitor = new ISAVisitor();
+		try {
+			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+			root.accept(isaVisitor, 0);
+		} catch (CoreException e) {
+			// hm, no workspace yet?
+			Console.err("Whoa, couldn't look for ISA files right now, or the visitor bombed.  You should restart methinks.");
+		}
 	}
 
 	
@@ -185,7 +196,7 @@ public class EduRideBase extends AbstractUIPlugin {
 			prefs.flush();
 		} catch (BackingStoreException e) {
 			// uh oh.
-			e.printStackTrace();
+			Console.err(e);
 			return false;
 		}
 		return true;
@@ -399,10 +410,10 @@ public class EduRideBase extends AbstractUIPlugin {
 	private void startOtherPlugins() {
 		IExtensionPoint point = Platform.getExtensionRegistry()
 				.getExtensionPoint(PLUGIN_ID, STARTUP_EXTENSION_POINT_ID);
-		//System.out.println("POINT: " + point.getLabel() + " ... " + point.getSchemaReference());
+		//Console.msg("POINT: " + point.getLabel() + " ... " + point.getSchemaReference());
 		IExtension[] extensions = point.getExtensions();
 
-		System.out.println("EDURIDE BASE: starting " + extensions.length + " extensions...");
+		Console.msg("EDURIDE BASE: starting " + extensions.length + " extensions...");
 		for (IExtension extension : extensions) {
 			IConfigurationElement[] configElements = extension
 					.getConfigurationElements();
@@ -414,10 +425,9 @@ public class EduRideBase extends AbstractUIPlugin {
 					// in the UI thread
 					IStartupSync starter = (IStartupSync) configElement.createExecutableExtension(STARTUP_EXTENSION_POINT_CLASS_ATTRIBUTE);
 					starter.install();
-					System.out.println("  Started plugin: " + extension.getLabel());
+					Console.msg("  Started plugin: " + extension.getLabel());
 				} catch (CoreException e) {
-					System.err
-							.println("  Whoa, problems starting up plugin: " + extension.getLabel());
+					Console.err("  Whoa, problems starting up plugin: " + extension.getLabel());
 				}
 			}
 		}

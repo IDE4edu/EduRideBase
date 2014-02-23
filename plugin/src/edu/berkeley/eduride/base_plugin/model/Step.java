@@ -17,6 +17,9 @@ import org.eclipse.jdt.core.JavaCore;
 public class Step {
 
 	
+
+	
+	
 	// NAME
 	private String name = "";
 	public String getName() {
@@ -128,7 +131,7 @@ public class Step {
 	// TESTCLASS
 	// the <testclass> is supposed to the qualified name (with packages, separated by periods)
 	//  of the junit test class for this source file.  Not a path name, since these
-	//  might be in jars (without source).
+	//  might be in jars (without source).  No ".java"!
 	String testclass;
 	//private File testclassFile = null;
 	private IFile testclassIFile = null;
@@ -254,6 +257,41 @@ public class Step {
 	public String toString() {
 		return getName() + " (" + type + ":" + getProjectName() + ")"; 
 	}
+
+	
+	
+	
+	////////////////////////////////////////////// 
+	
+	/// Step utilities
+	
+	
+	
+	
+	
+	
+	
+	// used in the feedback model to figure out which testclass to use for a
+	// source file
+	// What is the right thing here? Easy when navigator view is open, but what
+	// about when it isn't?
+	// - use the active project? Is this specific enough for situations where
+	// source class doesn't uniquely identify test class?
+	// - editor? No, this doesn't help anything, we already have the source
+	// class...
+	// - do this a different way and say which test classes can work for any
+	// source class,
+	// so they can all be shown?
+	public static String getCurrentStep() {
+		// TODO make this work for situations where a single source file has
+		// multiple test classes (for different activities/steps)
+		// this step key is passed to FeedbackModelProvider.setup as *.isa files
+		// are parsed.
+		return null;
+	}
+
+	
+	
 
 
 }

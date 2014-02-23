@@ -20,6 +20,7 @@ import java.util.zip.ZipFile;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 
 import edu.berkeley.eduride.base_plugin.EduRideBase;
+import edu.berkeley.eduride.base_plugin.util.Console;
 
 
 /**
@@ -70,7 +71,7 @@ public class ActivityImport {
 			} else {
 				String msg = "Couldn't make root import directory -- permissions? : "
 						+ newroot.toString();
-				System.err.println(msg);
+				Console.err(msg);
 				log("installFailure", msg);
 				return null;
 			}
@@ -90,9 +91,8 @@ public class ActivityImport {
 //		} catch (IOException e) {
 //			String msg = "Couldn't delete files in import directory -- permissions? : "
 //					+ root.toString();
-//			System.err.println(msg);
+//			Console.err(msg);
 //			log("installFailure", msg);
-//			e.printStackTrace();
 //		}
 	}
 	
@@ -157,9 +157,9 @@ public class ActivityImport {
 
 		} catch (IOException e) {
 			String msg = "uh oh, exception while getting zipfile url, etc? : " + url.toString();
-			System.err.println(msg);
+			Console.err(msg);
 			log("installFailure", msg);
-			e.printStackTrace();
+			Console.err(e);
 		}
 	}
 	
@@ -189,7 +189,7 @@ public class ActivityImport {
 				if (entry.isDirectory()) {
 					continue;
 				} else {
-					// System.out.println("Extracting " + destinationFilePath);
+					Console.msg("Extracting " + destinationFilePath);
 
 					/*
 					 * Get the InputStream for current entry of the zip file
@@ -223,9 +223,9 @@ public class ActivityImport {
 
 		} catch (IOException e) {
 			String msg = "uh oh, exception while extracting files from zip? : " + zipFile.getName();
-			System.err.println(msg);
+			Console.err(msg);
 			log("installFailure", msg);
-			e.printStackTrace();
+			Console.err(e);
 
 		}
 

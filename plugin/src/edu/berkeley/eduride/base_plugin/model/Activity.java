@@ -1,10 +1,13 @@
 package edu.berkeley.eduride.base_plugin.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.widgets.Group;
+
+import edu.berkeley.eduride.base_plugin.util.Console;
 
 
 public class Activity implements Comparable<Activity> {
@@ -54,7 +57,7 @@ public class Activity implements Comparable<Activity> {
 			this.sortOrder = Integer.parseInt(sortOrder);
 		} catch (NumberFormatException e) {
 			// TODO Throw exception up, please, for authors
-			System.err.println("hey, bad sort order " + sortOrder + " on activity " + name + " -- couldn't convert it to int");
+			Console.err("hey, bad sort order " + sortOrder + " on activity " + name + " -- couldn't convert it to int");
 			this.sortOrder = 1;
 		}
 	}
@@ -99,6 +102,26 @@ public class Activity implements Comparable<Activity> {
 	
 	
 
+	
+	//////////////////////////////////////////////////
+	/*
+	 * Persistance for activities
+	 */
+	
+	
+	private static HashMap<IFile, Activity> activityStore = new HashMap<IFile, Activity>();
+
+	public static boolean hasActivity(IFile isaFile) {
+		return activityStore.containsKey(isaFile);
+	}
+	public static Activity getActivity(IFile isaFile) {
+		return activityStore.get(isaFile);
+	}
+	
+	public static void recordActivity(IFile isaFile, Activity activity) {
+		activityStore.put(isaFile, activity);
+	}
+	
 	
 	
 

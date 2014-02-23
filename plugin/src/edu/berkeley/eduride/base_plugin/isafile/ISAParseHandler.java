@@ -2,7 +2,9 @@ package edu.berkeley.eduride.base_plugin.isafile;
 
 import java.util.ArrayList;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.swt.internal.win32.CREATESTRUCT;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -10,8 +12,17 @@ import org.xml.sax.helpers.DefaultHandler;
 import edu.berkeley.eduride.base_plugin.model.Activity;
 import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.model.Step.StepType;
+import edu.berkeley.eduride.base_plugin.util.Console;
 
-public class ISAParseHandler extends DefaultHandler {
+/**
+ * used by ISAParser
+ * 
+ * @author nate
+ *
+ */
+
+class ISAParseHandler extends DefaultHandler {
+	
 	public static final String isaTag = "isa";
 	public static final String stepTag = "exercise";
 	public static final String categoryTag = "category";
@@ -35,6 +46,11 @@ public class ISAParseHandler extends DefaultHandler {
 		act = new Activity(projectName, isaIntro, isaName, steps, isaCategory, isaSubCategory, isaSortOrder);
 	}
 
+	private IFile isafile = null;
+	public void setIsafile(IFile isafile) {
+		this.isafile = isafile;
+	}
+	
 	private Activity act;
 	private String projectName;
 	public void setProjectName(String projectName) {
@@ -130,8 +146,8 @@ public class ISAParseHandler extends DefaultHandler {
 			} else if (qName.equalsIgnoreCase(isaTag)) {
 				// do nothing
 			} else {
-				System.err.println("Bad tag in isa file: " + qName
-						+ " String is: " + s);
+				ISAUtil.createISAFormatProblemMarker(isafile, 1, "Bad tag in isa file: " + qName + " String is: " + s);
+				// Console.isaErr("Bad tag in isa file: " + qName + " String is: " + s);
 			}
 			reset(inStep);
 		}
