@@ -237,13 +237,7 @@ public class ISAUtil {
 		} catch (CoreException e) {
 			// eh.
 		}
-		String filename;
-		if (isafile == null) {
-			filename = "???";
-		} else {
-			filename = isafile.toString();
-		}
-		Console.err("ISA Format Error: (file " + filename + ", line " + line + ") " + msg);
+		Console.err("ISA Format Error: (file " + isafile + ", line " + line + ") " + msg);
 	}
 	
 
