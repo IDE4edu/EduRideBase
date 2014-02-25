@@ -92,7 +92,10 @@ public class EduRideBase extends AbstractUIPlugin {
 	public void start(BundleContext bundleContext) throws Exception {
 
 		EduRideBase.context = bundleContext;
-
+		
+		// get things moving a bit?
+		ResourcesPlugin.getWorkspace();
+		
 		if (empty(getWorkspaceID())) {
 			setWorkspaceID(generateWorkspaceID());
 			flushPrefs();
@@ -359,9 +362,9 @@ public class EduRideBase extends AbstractUIPlugin {
 		return username + " (not authenticated)";
 	}
 
-	// //////////
-
-	// ////shared images
+	
+	////////////
+	//////shared images
 
 	/**
 	 * setup shared images

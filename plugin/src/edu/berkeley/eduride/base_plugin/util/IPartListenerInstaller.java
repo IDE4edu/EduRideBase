@@ -13,7 +13,8 @@ import org.eclipse.ui.PlatformUI;
 public class IPartListenerInstaller {
 
 	// returns an error string or null if aok
-	public static String installOnWorkbench(IPartListener2 listener, String installer) {
+	public static String installOnWorkbench(IPartListener2 listener,
+			String installer) {
 
 		try {
 			ArrayList<IWorkbenchPage> pages = getWorkbenchPages();
@@ -23,11 +24,15 @@ public class IPartListenerInstaller {
 				lastpage = page;
 			}
 			if (lastpage != null) {
-				Console.msg("IPartListener for " + installer	+ " last installed on " + lastpage.getLabel());
+				Console.msg("IPartListener for " + installer
+						+ " last installed on " + lastpage.getLabel());
 			} else {
 				Console.err("IPartListener didn't find any non-null workbench pages...");
 			}
+		} catch (EduRideException e) {
+			return e.getMessage();
 		} catch (Exception e) {
+			Console.err("General exception in 'installOnWorkbench': " + e.getMessage());
 			return e.getMessage();
 		}
 		return null;
@@ -35,36 +40,39 @@ public class IPartListenerInstaller {
 	}
 
 	private static ArrayList<IWorkbenchPage> getWorkbenchPages()
-			throws Exception {
+			throws EduRideException {
 
 		ArrayList<IWorkbenchPage> output = new ArrayList<IWorkbenchPage>();
-
 		String errString = "";
 		try {
 			IWorkbench workbench = PlatformUI.getWorkbench(); // might throw
 																// exception
 			IWorkbenchWindow windows[] = null;
-			if (workbench != null) {
+			if (workbench == null) {
+				errString += "Workbench is null!  ";
+
+			} else {
 				windows = workbench.getWorkbenchWindows();
-			}
-			for (int i = 0; i < windows.length; i++) {
-				IWorkbenchWindow window = windows[i];
-				if (window == null) {
-					errString += "Active workbench window " + i + " is null.  ";
-				} else {
-					IWorkbenchPage[] pages = window.getPages();
-					boolean installedOnAPage = false;
-					for (IWorkbenchPage page : pages) {
-						if (page != null) {
-							output.add(page);
-							installedOnAPage = true;
+				for (int i = 0; i < windows.length; i++) {
+					IWorkbenchWindow window = windows[i];
+					if (window == null) {
+						errString += "Active workbench window " + i
+								+ " is null.  ";
+					} else {
+						IWorkbenchPage[] pages = window.getPages();
+						boolean installedOnAPage = false;
+						for (IWorkbenchPage page : pages) {
+							if (page != null) {
+								output.add(page);
+								installedOnAPage = true;
+							}
+							// window.getPartService().addPartListener(this);
+							// more modernish
 						}
-						// window.getPartService().addPartListener(this);
-						// more modernish
-					}
-					if (!installedOnAPage) {
-						// darn, we got to try again here... arg.
-						errString += "IPartListener: No non-null pages in any workbench window. ";
+						if (!installedOnAPage) {
+							// darn, we got to try again here... arg.
+							errString += "IPartListener: No non-null pages in any workbench window. ";
+						}
 					}
 				}
 			}
@@ -72,7 +80,7 @@ public class IPartListenerInstaller {
 			errString += "getWorkbench() failed: " + e.getMessage() + ".  ";
 		}
 		if (errString != "") {
-			throw new Exception(errString);
+			throw new EduRideException(errString);
 		}
 
 		// return (errString == "" ? null : errString);
