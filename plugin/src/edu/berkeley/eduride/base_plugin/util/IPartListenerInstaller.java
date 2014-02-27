@@ -32,7 +32,8 @@ public class IPartListenerInstaller {
 		} catch (EduRideException e) {
 			return e.getMessage();
 		} catch (Exception e) {
-			Console.err("General exception in 'installOnWorkbench': " + e.getMessage());
+			Console.err("General exception in 'installOnWorkbench': "
+					+ e.getMessage());
 			return e.getMessage();
 		}
 		return null;
@@ -53,27 +54,38 @@ public class IPartListenerInstaller {
 
 			} else {
 				windows = workbench.getWorkbenchWindows();
-				for (int i = 0; i < windows.length; i++) {
-					IWorkbenchWindow window = windows[i];
-					if (window == null) {
-						errString += "Active workbench window " + i
-								+ " is null.  ";
-					} else {
-						IWorkbenchPage[] pages = window.getPages();
-						boolean installedOnAPage = false;
-						for (IWorkbenchPage page : pages) {
-							if (page != null) {
-								output.add(page);
-								installedOnAPage = true;
+				if (windows == null || windows.length == 0) {
+					errString += "There are no workbench windows yet!  ";
+				} else {
+					boolean installedOnAPage = false;
+					for (int i = 0; i < windows.length; i++) {
+						boolean windowHasNonNullPage = false;
+						IWorkbenchWindow window = windows[i];
+						if (window == null) {
+							errString += "Active workbench window " + i
+									+ " is null.  ";
+						} else {
+							IWorkbenchPage[] pages = window.getPages();
+
+							for (IWorkbenchPage page : pages) {
+								if (page != null) {
+									output.add(page);
+									windowHasNonNullPage = true;
+									installedOnAPage = true;
+								}
+								// window.getPartService().addPartListener(this);
+								// more modernish
 							}
-							// window.getPartService().addPartListener(this);
-							// more modernish
 						}
-						if (!installedOnAPage) {
-							// darn, we got to try again here... arg.
-							errString += "IPartListener: No non-null pages in any workbench window. ";
+						if (!windowHasNonNullPage) {
+							errString += "Workbench window (" + window.toString() + ") has no non-null pages.  ";
 						}
 					}
+					if (!installedOnAPage) {
+						// darn, we got to try again here... arg.
+						errString += "IPartListener: No non-null pages in any workbench window. ";
+					}
+
 				}
 			}
 		} catch (IllegalStateException e) {
