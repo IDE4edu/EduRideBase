@@ -119,7 +119,7 @@ public class ISAUtil {
 	// 1 to 1 relationship between Activities and isaFiles
 	// ?when a file gets reparsed, it replaces the associated activity?
 	
-	public static Activity parseISA(IFile ifile) {
+	public static Activity parseISA(IFile ifile)  {
 		ISAParseHandler handler;
 		try {
 			// project is that which contains the isa file

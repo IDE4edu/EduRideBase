@@ -108,14 +108,8 @@ public class EduRideBase extends AbstractUIPlugin {
 		startOtherPlugins();
 
 		// process workspace, looking for ISA files.
-		ISAVisitor isaVisitor = new ISAVisitor();
-		try {
-			IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-			root.accept(isaVisitor, 0);
-		} catch (CoreException e) {
-			// hm, no workspace yet?
-			Console.err("Whoa, couldn't look for ISA files right now, or the visitor bombed.  You should restart methinks.");
-		}
+		// TODO do async in another thread?
+		Boolean success = ISAVisitor.processAllISAInWorkspace();
 	}
 
 	
