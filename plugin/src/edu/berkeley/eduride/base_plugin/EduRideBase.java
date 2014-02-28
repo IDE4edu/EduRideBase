@@ -37,6 +37,8 @@ import edu.berkeley.eduride.base_plugin.util.Console;
 
 public class EduRideBase extends AbstractUIPlugin {
 
+	private static final String VERSION_MSG = "1.0.3.1";
+	
 	private static BundleContext context;
 	private static IEclipsePreferences prefs;
 
@@ -92,6 +94,8 @@ public class EduRideBase extends AbstractUIPlugin {
 	public void start(BundleContext bundleContext) throws Exception {
 
 		EduRideBase.context = bundleContext;
+		
+		Console.msg("EDURIDE BASE: version string " + VERSION_MSG );
 		
 		// get things moving a bit?
 		ResourcesPlugin.getWorkspace();
@@ -410,7 +414,7 @@ public class EduRideBase extends AbstractUIPlugin {
 		//Console.msg("POINT: " + point.getLabel() + " ... " + point.getSchemaReference());
 		IExtension[] extensions = point.getExtensions();
 
-		Console.msg("EDURIDE BASE: starting " + extensions.length + " extensions...");
+		Console.msg("Base: starting " + extensions.length + " extensions...");
 		for (IExtension extension : extensions) {
 			IConfigurationElement[] configElements = extension
 					.getConfigurationElements();
