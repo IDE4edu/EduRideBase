@@ -35,6 +35,7 @@ public class ISAVisitor implements IResourceProxyVisitor {
 		} catch (CoreException e) {
 			// hm, no workspace yet?
 			Console.err("Whoa, couldn't look for ISA files right now, or the visitor bombed.  You should restart methinks.");
+			Console.err(e);
 			return false;
 		}
 	}
