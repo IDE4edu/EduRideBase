@@ -49,6 +49,8 @@ public class EduRideBase extends AbstractUIPlugin {
 	private static EduRideBase plugin = null;
 
 	public static final String DEFAULT_DOMAIN = "eduride.berkeley.edu";
+	// -1 will let java figure it out for the protocol
+	public static final int DEFAULT_DOMAIN_PORT = -1;
 
 	// This should function like a proper name, when used in a sentence
 	private static final String GUEST_USER_NAME = "Guest";
@@ -189,7 +191,19 @@ public class EduRideBase extends AbstractUIPlugin {
 	private static void setDomain(String domain) {
 		prefs.put("domain", domain);
 	}
+	
+	public static int getDomainPort() {
+		return prefs.getInt("domainPort", DEFAULT_DOMAIN_PORT);
+	}
 
+	public static void resetDomainPort() {
+		prefs.putInt("domainPort", DEFAULT_DOMAIN_PORT);
+	}
+	private static void setDomainPort(int newPort) {
+		prefs.putInt("domainPort", newPort);
+	}
+	
+	
 	// maybe there are some nulls around still...
 	private static boolean empty(String s) {
 		return (s == null || s == "");
@@ -247,6 +261,9 @@ public class EduRideBase extends AbstractUIPlugin {
 			String domain) throws EduRideAuthFailure {
 		String newAuthToken = null;
 
+		processDomainAndPort(domain);
+		setUsernameStored(username);
+		
 		// TODO -- should warn if username is guestname somehow? Nah, I don't
 		// think so, since guestname can change maybe
 		// throw the exception if we fail, with a good message
@@ -267,15 +284,10 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		// should we logOut() if the authentication failed for some reason?
 
-		if (domain.startsWith("http://")) {
-			domain = domain.substring(7);
-		}
-		
-		setUsernameStored(username);
-		//setAuthToken(newAuthToken);
-		setDomain(domain);
+		//setAuthToken(newAuthToken);   //null now, which breaks
 		//userStatus = LOGGED_IN;
 		//setRemainGuestStatus(false);
+
 		if (!flushPrefs()) {
 			// I guess? you can't authenticate if we can't store your username?
 			throw new EduRideAuthFailure(
@@ -284,6 +296,41 @@ public class EduRideBase extends AbstractUIPlugin {
 
 	}
 
+	
+	public static String getDomainAndMaybePort() {
+		String domain = getDomain();
+		int port = getDomainPort();
+		if (port != DEFAULT_DOMAIN_PORT) {
+			domain += ":" + port;
+		}
+		return domain;
+	}
+	
+	public static void processDomainAndPort(String domain) {
+		// strip protocol (maybe do https someday - need to store protocol, etc...)
+		if (domain.startsWith("http://")) {
+			domain = domain.substring(7);
+		} else if (domain.startsWith("https://")) {
+			domain = domain.substring(8);
+		}
+		// get the port.
+		if (domain.contains(":")) {
+			int indexOfColon = domain.indexOf(":");
+			try {
+				String portStr = domain.substring(indexOfColon + 1);
+				int newPort = Integer.parseInt(portStr);
+				setDomainPort(newPort);
+			} catch (Exception e){
+				resetDomainPort();
+			}
+			domain = domain.substring(0, indexOfColon);
+		} else {
+			resetDomainPort();
+		}
+		setDomain(domain);
+
+	}
+	
 	public static void logOut() {
 		clearUsernameStored();
 		clearAuthToken();
@@ -356,11 +403,12 @@ public class EduRideBase extends AbstractUIPlugin {
 		}
 	}
 
-	public static void chooseGuestStatus() {
+	public static void chooseGuestStatus(String domain) {
 		userStatus = CHOSEN_GUEST;
 		setRemainGuestStatus(true);
 		clearUsernameStored();
 		clearAuthToken();
+		processDomainAndPort(domain);
 		flushPrefs();
 	}
 

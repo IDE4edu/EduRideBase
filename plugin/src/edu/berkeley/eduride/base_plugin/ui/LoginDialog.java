@@ -45,7 +45,7 @@ public class LoginDialog extends InputDialog {
 	
 	public LoginDialog() {
 		super(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), 
-				"EduRide Login", "Domain:", EduRideBase.getDomain(), null);
+				"EduRide Login", "Domain: (no protocol, optional ':port') ", EduRideBase.getDomainAndMaybePort(), null);
 		setBlockOnOpen(true);
 	}
 	
@@ -106,7 +106,7 @@ public class LoginDialog extends InputDialog {
 	@Override
 	protected void okPressed() {
 		if (chosenGuest()) {
-			EduRideBase.chooseGuestStatus();
+			EduRideBase.chooseGuestStatus(getDomain());
 			super.okPressed();
 		} else {
 			try {
