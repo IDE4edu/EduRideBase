@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.action.SubStatusLineManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -30,6 +31,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
 import edu.berkeley.eduride.base_plugin.isafile.ISAVisitor;
+import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
 import edu.berkeley.eduride.base_plugin.util.Console;
 
@@ -109,6 +111,7 @@ public class EduRideBase extends AbstractUIPlugin {
 			userStatus = CHOSEN_GUEST;
 		}
 
+		Step prevent1 = new Step(null, null, null, null, null, null, null, null);
 		startOtherPlugins();
 
 		// process workspace, looking for ISA files.
@@ -239,6 +242,7 @@ public class EduRideBase extends AbstractUIPlugin {
 	}
 
 	// Successful authentication means user doesn't want to be a guest anymore
+	// TODO obviously not finished, yo.  But, lets you set the domain for testing...
 	public static void authenticate(String username, String password,
 			String domain) throws EduRideAuthFailure {
 		String newAuthToken = null;
@@ -263,11 +267,15 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		// should we logOut() if the authentication failed for some reason?
 
+		if (domain.startsWith("http://")) {
+			domain = domain.substring(7);
+		}
+		
 		setUsernameStored(username);
-		setAuthToken(newAuthToken);
+		//setAuthToken(newAuthToken);
 		setDomain(domain);
-		userStatus = LOGGED_IN;
-		setRemainGuestStatus(false);
+		//userStatus = LOGGED_IN;
+		//setRemainGuestStatus(false);
 		if (!flushPrefs()) {
 			// I guess? you can't authenticate if we can't store your username?
 			throw new EduRideAuthFailure(

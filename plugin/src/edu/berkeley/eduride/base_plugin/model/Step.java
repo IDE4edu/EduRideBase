@@ -2,8 +2,6 @@ package edu.berkeley.eduride.base_plugin.model;
 
 import java.io.File;
 
-import javax.security.auth.callback.LanguageCallback;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;

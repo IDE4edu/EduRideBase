@@ -49,6 +49,11 @@ public class LoginDialog extends InputDialog {
 		setBlockOnOpen(true);
 	}
 	
+	
+	private String getDomain() {
+		return getValue();
+	}
+	
 	@Override
 	protected Control createDialogArea(final Composite parent) {
 		final Composite c = (Composite) super.createDialogArea(parent);
@@ -106,7 +111,7 @@ public class LoginDialog extends InputDialog {
 		} else {
 			try {
 				EduRideBase.authenticate(userInput.getText(),
-						passwordInput.getText(), getText().getText());
+						passwordInput.getText(), getDomain());
 			} catch (EduRideAuthFailure e) {
 				errorLabel.setText(e.getLocalizedMessage());
 				passwordInput.clearSelection();
