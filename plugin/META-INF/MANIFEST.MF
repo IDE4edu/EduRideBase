@@ -4,9 +4,9 @@ Bundle-Name: EduRideBasePlugin
 Bundle-SymbolicName: EduRideBasePlugin;singleton:=true
 Bundle-Version: 1.0.3.qualifier
 Bundle-Activator: edu.berkeley.eduride.base_plugin.EduRideBase
-Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.ui,
- org.eclipse.ui.console
+Require-Bundle: org.eclipse.core.runtime;bundle-version="3.6.0",
+ org.eclipse.ui;bundle-version="3.6.0",
+ org.eclipse.ui.console;bundle-version="3.5.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: edu.berkeley.eduride.base_plugin,
