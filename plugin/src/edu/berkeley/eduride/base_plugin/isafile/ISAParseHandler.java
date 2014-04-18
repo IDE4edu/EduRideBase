@@ -15,7 +15,7 @@ import edu.berkeley.eduride.base_plugin.model.Step.StepType;
 /**
  * used by ISAParser
  * 
- * @author nate
+ * @author nate, andy
  *
  */
 
@@ -35,33 +35,29 @@ class ISAParseHandler extends DefaultHandler {
 	public static final String launchTag = "launch"; // optional
 	public static final String launchButtonNameTag = "launchButtonName"; // optional
 
-	@Override
-	public void startDocument() throws SAXException {
-	}
-
-	@Override
-	public void endDocument() throws SAXException {
-		act = new Activity(projectName, isaIntro, isaName, steps, isaCategory, isaSubCategory, isaSortOrder);
-	}
 
 	private IFile isafile = null;
 	public void setIsafile(IFile isafile) {
 		this.isafile = isafile;
 	}
-	
-	private Activity act;
+		
 	private String projectName;
 	public void setProjectName(String projectName) {
 		this.projectName = projectName;
 	}
+	
 	private IProject iproj;
 	public void setIProject(IProject iproj) {
 		this.iproj = iproj;
 	}
 
-	public Activity getActivity() {
-		return act;
+	
+	private ArrayList<Activity> acts = new ArrayList<Activity>();
+	public ArrayList<Activity> getActivities() {
+		return acts;
 	}
+	
+	
 
 	String isaIntro = "";
 	String isaName = "";
@@ -69,6 +65,7 @@ class ISAParseHandler extends DefaultHandler {
 	String isaSubCategory = "";
 	String isaSortOrder = "1";
 
+	
 	boolean inStep = false;
 
 	String name;
@@ -93,6 +90,49 @@ class ISAParseHandler extends DefaultHandler {
 	StringBuffer buffer = new StringBuffer();
 	ArrayList<Step> steps = new ArrayList<Step>();
 
+	////////////
+	
+	/* TODO
+	 
+(1) PROCESS <eduRideSource>, outside of <isa>
+<eduRideSource>
+   <file>
+     ... a path ala <source>
+   </file>
+   <BCEO>
+      ... send contents to BCEO...Util.importBCEOXML(xmlcontents, IResource)
+   </BCEO>
+   <base64>
+      ... lots o crap
+   </base64>
+</eduRideSource>
+
+
+(2) make it so one .isa file can have 0+ activities, 0+ eduRideSources
+
+
+(3) persist eduRideSource stuff.
+
+
+	 */
+	
+	
+	
+	
+	@Override
+	public void startDocument() throws SAXException {
+	}
+
+	@Override
+	public void endDocument() throws SAXException {
+		Activity act = new Activity(projectName, isaIntro, isaName, steps, isaCategory, isaSubCategory, isaSortOrder);
+		act.setIsaFile(isafile);
+		act.setIProject(iproj);
+		acts.add( act );
+	}
+
+	
+	
 	@Override
 	public void startElement(String namespaceURI, String localName,
 			String qName, Attributes atts) throws SAXException {

@@ -74,6 +74,7 @@ public class ISAUtil {
 	/**
 	 * Determines whether a file is located within a project that contains an .isa file
 	 */
+	// TODO use activityStore, looking at projects for each, how about
 	public static boolean withinISAProject(IFile file) {
 		boolean containsISA = false;
 		if (file == null) {
@@ -119,7 +120,7 @@ public class ISAUtil {
 	// 1 to 1 relationship between Activities and isaFiles
 	// ?when a file gets reparsed, it replaces the associated activity?
 	
-	public static Activity parseISA(IFile ifile)  {
+	public static void parseISA(IFile ifile)  {
 		ISAParseHandler handler;
 		try {
 			// project is that which contains the isa file
@@ -136,18 +137,25 @@ public class ISAUtil {
 			handler.setProjectName(projectName);
 			handler.setIProject(iproj);
 			handler.setIsafile(ifile);
+			
 			saxParser.parse(file, handler);
 
-			Activity act = handler.getActivity();
-	
-			act.setIsaFile(ifile);
-			act.setIProject(iproj);
-			Activity.recordActivity(ifile, act);
+			// activities
+			ArrayList<Activity> acts = handler.getActivities();
+			for (Activity act : acts) {
+				Activity.recordActivity(act);
+				postProcess(act);
+			}
 
-			postProcess(act);
+			// eduride source references
 			
-			return act;
-
+			
+			
+			
+			// finish
+			postProcess(ifile);
+			
+			
 			// THESE EXCEPTIONS NEED TO WARN USER (ISA AUTHOR) SOMEHOW
 //		} catch (ISAFormatException e) {
 //			// TODO: ISA file has bad content
@@ -157,22 +165,32 @@ public class ISAUtil {
 			String msg = "Parse Exception: tag " + e.getPublicId()
 					+ ", column " + e.getColumnNumber();
 			createISAFormatProblemMarker(ifile, e.getLineNumber(), msg);
-			return null;
+
 		} catch (SAXException e) {
 			String msg = "SAX Exception: " + e.getMessage();
 			createISAFormatProblemMarker(ifile, 1, msg);
-			return null;
+
 		} catch (IOException e) {
 			String msg = "IO Exception while parsing ISA file: " + e.getMessage();
 			createISAFormatProblemMarker(ifile, 1, msg);
-			return null;
+
 		} catch (ParserConfigurationException e) {
 			String msg = "Parse Configuration Exception: " + e.getMessage();
 			createISAFormatProblemMarker(ifile, 1, msg);
-			return null;
+
 		}
 	}
 
+	
+	
+	
+	
+	
+	private static void postProcess(IFile isaFile) {
+		
+	}
+	
+	
 	
 	
 

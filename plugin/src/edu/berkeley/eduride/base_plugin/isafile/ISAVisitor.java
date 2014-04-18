@@ -34,12 +34,28 @@ public class ISAVisitor implements IResourceProxyVisitor {
 			return true;
 		} catch (CoreException e) {
 			// hm, no workspace yet?
-			Console.err("Whoa, couldn't look for ISA files right now, or the visitor bombed.  You should restart methinks.");
+			Console.err("Whoa, couldn't look for ISA files in workspace right now, or the visitor bombed.  You should restart methinks.");
+			Console.err(e);
+			return false;
+		}
+		
+		// do some post processing?
+		//  - 
+	}
+
+	
+	public static boolean processISAInProject(IProject proj) {
+		ISAVisitor isaVisitor = new ISAVisitor();
+		try {
+			proj.accept(isaVisitor, 0);
+			return true;
+		} catch (CoreException e) {
+			Console.err("Whoa, couldn't look for ISA files in project "+ proj.getName() + ", or the visitor bombed.  You should restart methinks.");
 			Console.err(e);
 			return false;
 		}
 	}
-
+	
 
 	// this should throw a CoreException if there is a problem processing ISAs?
 	@Override

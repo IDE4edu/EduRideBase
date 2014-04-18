@@ -109,18 +109,27 @@ public class Activity implements Comparable<Activity> {
 	 */
 	
 	
-	private static HashMap<IFile, Activity> activityStore = new HashMap<IFile, Activity>();
+	private static ArrayList<Activity> activityStore = new ArrayList<Activity>();
+	
 
-	public static boolean hasActivity(IFile isaFile) {
-		return activityStore.containsKey(isaFile);
-	}
-	public static Activity getActivity(IFile isaFile) {
-		return activityStore.get(isaFile);
+
+	
+	public static ArrayList<Activity> getActivities() {
+		return activityStore;
 	}
 	
-	public static void recordActivity(IFile isaFile, Activity activity) {
-		activityStore.put(isaFile, activity);
+	public static void recordActivity(Activity activity) {
+		activityStore.add(activity);
+
 	}
+	
+	// TODO fix this
+	public static boolean hasActivity(IFile isaFile) {
+		return false;
+	}
+	
+	
+	
 	
 	
 	
