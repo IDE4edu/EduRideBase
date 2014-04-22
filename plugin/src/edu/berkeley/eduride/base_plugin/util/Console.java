@@ -1,11 +1,8 @@
 package edu.berkeley.eduride.base_plugin.util;
 
-import javax.swing.plaf.basic.BasicLookAndFeel;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
@@ -19,6 +16,7 @@ import edu.berkeley.eduride.base_plugin.EduRideBase;
 
 
 public class Console implements IConsoleFactory {
+	
 
 	public static void msg (String msg) {
 		System.out.println(msg);
@@ -35,7 +33,21 @@ public class Console implements IConsoleFactory {
 	}
 	
 	public static void err (Exception e) {
-		err(e.toString());
+
+		err(e.toString());  // first line from exception only
+		
+		//java.util.Properties properties = System.getProperties();
+		//String launcher = properties.getProperty("eclipse.launcher");
+		//if (launcher != null && launcher.endsWith("eclipse.exe")) {
+			e.printStackTrace();  // full exception
+		//} 
+
+		
+	}
+	
+	public static void err (String msg, Exception e) {
+		err(msg + " (cont-->)");
+		err(e);
 	}
 	
 	
