@@ -39,10 +39,9 @@ public class Console implements IConsoleFactory {
 		//java.util.Properties properties = System.getProperties();
 		//String launcher = properties.getProperty("eclipse.launcher");
 		//if (launcher != null && launcher.endsWith("eclipse.exe")) {
-			e.printStackTrace();  // full exception
+			e.printStackTrace();  // full exception, only with runtime eclipse
 		//} 
 
-		
 	}
 	
 	public static void err (String msg, Exception e) {
@@ -54,8 +53,9 @@ public class Console implements IConsoleFactory {
 	// TODO this should throw an exception and put an entry into the problem view, yo
 	public static void isaErr (String msg) {
 		err(msg);
-		
 	}
+	
+	
 	
 	/////////////
 	
