@@ -66,7 +66,7 @@ public class ISAVisitor implements IResourceProxyVisitor {
 		} else if (proxy.getType() == IResource.PROJECT)  {
 			// Project?  Keep visiting iff its a Java project
 			IProject iproj = proxy.requestResource().getProject();
-			return iproj.hasNature(JavaCore.NATURE_ID);
+			return (iproj.isOpen() && iproj.hasNature(JavaCore.NATURE_ID));
 		} else if (proxy.getType() == IResource.FOLDER) {
 			//Folder.  always visit.
 			return true;
