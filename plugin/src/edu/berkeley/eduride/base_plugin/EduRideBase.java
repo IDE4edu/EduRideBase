@@ -99,7 +99,7 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		EduRideBase.context = bundleContext;
 		
-		Console.msg("EDURIDE BASE: version string " + VERSION_MSG );
+		Console.msg("EDURIDE BASE: version " + VERSION_MSG );
 		
 		// get things moving a bit?
 		ResourcesPlugin.getWorkspace();
@@ -112,10 +112,14 @@ public class EduRideBase extends AbstractUIPlugin {
 		if (getRemainGuestStatus()) {
 			userStatus = CHOSEN_GUEST;
 		}
+		
+		Console.msg("WorkspaceID: " + getWorkspaceID() + " ; Guest: " + getRemainGuestStatus());
 
+		
 		Step prevent1 = new Step(null, null, null, null, null, null, null, null);
 		startOtherPlugins();
 
+		
 		// process workspace, looking for ISA files.
 		// TODO do async in another thread?
 		Boolean success = ISAVisitor.processAllISAInWorkspace();

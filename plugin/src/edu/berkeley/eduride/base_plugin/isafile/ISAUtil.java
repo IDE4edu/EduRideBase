@@ -130,6 +130,7 @@ public class ISAUtil {
 			URI uri = ifile.getLocationURI();
 			File file = new File(uri);
 
+			Console.msg("Parsing ISA file '" + file.getName() + "' in project '" + projectName + "'");
 
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
