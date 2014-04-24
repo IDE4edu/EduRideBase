@@ -1,30 +1,26 @@
 package edu.berkeley.eduride.base_plugin;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.UUID;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.action.SubStatusLineManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -35,12 +31,13 @@ import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.ui.LoginDialog;
 import edu.berkeley.eduride.base_plugin.util.Console;
 
+
 //import edu.berkeley.eduride.feedbackview.EduRideFeedback;
 
 public class EduRideBase extends AbstractUIPlugin {
 
 	private static final String VERSION_MSG = "1.0.3.1";
-	
+
 	private static BundleContext context;
 	private static IEclipsePreferences prefs;
 
@@ -71,12 +68,11 @@ public class EduRideBase extends AbstractUIPlugin {
 	 */
 	public EduRideBase() {
 		super();
-		
+
 		prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 		prefStore = new PreferenceStore(prefs.absolutePath());
 		plugin = this;
-		
-		
+
 	}
 
 	/**
@@ -98,12 +94,12 @@ public class EduRideBase extends AbstractUIPlugin {
 	public void start(BundleContext bundleContext) throws Exception {
 
 		EduRideBase.context = bundleContext;
-		
-		Console.msg("EDURIDE BASE: version " + VERSION_MSG );
-		
+
+		Console.msg("EDURIDE BASE: version " + VERSION_MSG);
+
 		// get things moving a bit?
 		ResourcesPlugin.getWorkspace();
-		
+
 		if (empty(getWorkspaceID())) {
 			setWorkspaceID(generateWorkspaceID());
 			flushPrefs();
@@ -112,21 +108,29 @@ public class EduRideBase extends AbstractUIPlugin {
 		if (getRemainGuestStatus()) {
 			userStatus = CHOSEN_GUEST;
 		}
-		
+
 		Console.msg("WorkspaceID: " + getWorkspaceID() + " ; Guest: " + getRemainGuestStatus());
 
-		
 		Step prevent1 = new Step(null, null, null, null, null, null, null, null);
 		startOtherPlugins();
 
-		
 		// process workspace, looking for ISA files.
-		// TODO do async in another thread?
-		Boolean success = ISAVisitor.processAllISAInWorkspace();
+		Job processIsa = new Job("Uploading logs") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+
+				Boolean success = ISAVisitor.processAllISAInWorkspace();
+
+				return Status.OK_STATUS;
+			}
+
+		};
+		processIsa.setSystem(true);
+		processIsa.setUser(false);
+		processIsa.schedule();
+
 	}
 
-	
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -195,7 +199,7 @@ public class EduRideBase extends AbstractUIPlugin {
 	private static void setDomain(String domain) {
 		prefs.put("domain", domain);
 	}
-	
+
 	public static int getDomainPort() {
 		return prefs.getInt("domainPort", DEFAULT_DOMAIN_PORT);
 	}
@@ -203,11 +207,11 @@ public class EduRideBase extends AbstractUIPlugin {
 	public static void resetDomainPort() {
 		prefs.putInt("domainPort", DEFAULT_DOMAIN_PORT);
 	}
+
 	private static void setDomainPort(int newPort) {
 		prefs.putInt("domainPort", newPort);
 	}
-	
-	
+
 	// maybe there are some nulls around still...
 	private static boolean empty(String s) {
 		return (s == null || s == "");
@@ -260,14 +264,15 @@ public class EduRideBase extends AbstractUIPlugin {
 	}
 
 	// Successful authentication means user doesn't want to be a guest anymore
-	// TODO obviously not finished, yo.  But, lets you set the domain for testing...
+	// TODO obviously not finished, yo. But, lets you set the domain for
+	// testing...
 	public static void authenticate(String username, String password,
 			String domain) throws EduRideAuthFailure {
 		String newAuthToken = null;
 
 		processDomainAndPort(domain);
 		setUsernameStored(username);
-		
+
 		// TODO -- should warn if username is guestname somehow? Nah, I don't
 		// think so, since guestname can change maybe
 		// throw the exception if we fail, with a good message
@@ -288,9 +293,9 @@ public class EduRideBase extends AbstractUIPlugin {
 
 		// should we logOut() if the authentication failed for some reason?
 
-		//setAuthToken(newAuthToken);   //null now, which breaks
-		//userStatus = LOGGED_IN;
-		//setRemainGuestStatus(false);
+		// setAuthToken(newAuthToken); //null now, which breaks
+		// userStatus = LOGGED_IN;
+		// setRemainGuestStatus(false);
 
 		if (!flushPrefs()) {
 			// I guess? you can't authenticate if we can't store your username?
@@ -300,7 +305,6 @@ public class EduRideBase extends AbstractUIPlugin {
 
 	}
 
-	
 	public static String getDomainAndMaybePort() {
 		String domain = getDomain();
 		int port = getDomainPort();
@@ -309,9 +313,10 @@ public class EduRideBase extends AbstractUIPlugin {
 		}
 		return domain;
 	}
-	
+
 	public static void processDomainAndPort(String domain) {
-		// strip protocol (maybe do https someday - need to store protocol, etc...)
+		// strip protocol (maybe do https someday - need to store protocol,
+		// etc...)
 		if (domain.startsWith("http://")) {
 			domain = domain.substring(7);
 		} else if (domain.startsWith("https://")) {
@@ -324,7 +329,7 @@ public class EduRideBase extends AbstractUIPlugin {
 				String portStr = domain.substring(indexOfColon + 1);
 				int newPort = Integer.parseInt(portStr);
 				setDomainPort(newPort);
-			} catch (Exception e){
+			} catch (Exception e) {
 				resetDomainPort();
 			}
 			domain = domain.substring(0, indexOfColon);
@@ -334,7 +339,7 @@ public class EduRideBase extends AbstractUIPlugin {
 		setDomain(domain);
 
 	}
-	
+
 	public static void logOut() {
 		clearUsernameStored();
 		clearAuthToken();
@@ -420,9 +425,8 @@ public class EduRideBase extends AbstractUIPlugin {
 		return username + " (not authenticated)";
 	}
 
-	
-	////////////
-	//////shared images
+	// //////////
+	// ////shared images
 
 	/**
 	 * setup shared images
@@ -460,8 +464,6 @@ public class EduRideBase extends AbstractUIPlugin {
 		registry.put(pathStr, selection);
 	}
 
-	
-	
 	// ////////////
 	// / Other plugin stuff
 
@@ -471,7 +473,8 @@ public class EduRideBase extends AbstractUIPlugin {
 	private void startOtherPlugins() {
 		IExtensionPoint point = Platform.getExtensionRegistry()
 				.getExtensionPoint(PLUGIN_ID, STARTUP_EXTENSION_POINT_ID);
-		//Console.msg("POINT: " + point.getLabel() + " ... " + point.getSchemaReference());
+		// Console.msg("POINT: " + point.getLabel() + " ... " +
+		// point.getSchemaReference());
 		IExtension[] extensions = point.getExtensions();
 
 		Console.msg("Base: starting " + extensions.length + " extensions...");
@@ -480,15 +483,20 @@ public class EduRideBase extends AbstractUIPlugin {
 					.getConfigurationElements();
 			for (IConfigurationElement configElement : configElements) {
 				try {
-					// If the following line throws a crazy thread exception, your plugin is 
-					// probably trying to do UI stuff and can't, at least not in the thread
-					// where this is called.  See the editor-overlay stuff for running
+					// If the following line throws a crazy thread exception,
+					// your plugin is
+					// probably trying to do UI stuff and can't, at least not in
+					// the thread
+					// where this is called. See the editor-overlay stuff for
+					// running
 					// in the UI thread
-					IStartupSync starter = (IStartupSync) configElement.createExecutableExtension(STARTUP_EXTENSION_POINT_CLASS_ATTRIBUTE);
+					IStartupSync starter = (IStartupSync) configElement
+							.createExecutableExtension(STARTUP_EXTENSION_POINT_CLASS_ATTRIBUTE);
 					starter.install();
 					Console.msg("  Started plugin: " + extension.getLabel());
 				} catch (CoreException e) {
-					Console.err("  Whoa, problems starting up plugin: " + extension.getLabel());
+					Console.err("  Whoa, problems starting up plugin: "
+							+ extension.getLabel());
 				}
 			}
 		}

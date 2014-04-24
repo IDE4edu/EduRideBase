@@ -16,11 +16,11 @@ import edu.berkeley.eduride.base_plugin.model.Step.StepType;
  * used by ISAParser
  * 
  * @author nate, andy
- *
+ * 
  */
 
 class ISAParseHandler extends DefaultHandler {
-	
+
 	public static final String isaTag = "isa";
 	public static final String stepTag = "exercise";
 	public static final String categoryTag = "category";
@@ -35,110 +35,185 @@ class ISAParseHandler extends DefaultHandler {
 	public static final String launchTag = "launch"; // optional
 	public static final String launchButtonNameTag = "launchButtonName"; // optional
 
+	public static final String edurideFileTag = "eduridefile";
+	// reuse <source>
+	public static final String bceo = "bceo";
+	public static final String base64 = "base64";
+
+	/*
+	 * TODO
+	 * 
+	 * (1) PROCESS <eduRideSource>, outside of <isa> <eduRideFile> <source> ...
+	 * a path </source> <BCEO> ... send contents to
+	 * BCEO...Util.importBCEOXML(xmlcontents, IResource) </BCEO> <base64> ...
+	 * lots o crap </base64> </eduRideFile>
+	 * 
+	 * 
+	 * (2) make it so one .isa file can have 0+ activities, 0+ eduRideSources
+	 * 
+	 * 
+	 * (3) persist eduRideSource stuff.
+	 */
 
 	private IFile isafile = null;
+
 	public void setIsafile(IFile isafile) {
 		this.isafile = isafile;
 	}
-		
+
 	private String projectName;
+
 	public void setProjectName(String projectName) {
 		this.projectName = projectName;
 	}
-	
+
 	private IProject iproj;
+
 	public void setIProject(IProject iproj) {
 		this.iproj = iproj;
 	}
 
-	
 	private ArrayList<Activity> acts = new ArrayList<Activity>();
 	public ArrayList<Activity> getActivities() {
 		return acts;
 	}
+
+
+
+	// /////// tag state
+
+	// isa state
+	private String isaIntro;
+	private String isaName;
+	private String isaCategory;
+	private String isaSubCategory;
+	private String isaSortOrder;
+	ArrayList<Step> isaSteps;
 	
-	
+	private void resetIsaDefaults() {
+		isaIntro = "";
+		isaName = "";
+		isaCategory = "";
+		isaSubCategory = "";
+		isaSortOrder = "1";
+		isaSteps = new ArrayList<Step>();
+	}
 
-	String isaIntro = "";
-	String isaName = "";
-	String isaCategory = "";
-	String isaSubCategory = "";
-	String isaSortOrder = "1";
+	// step state
+	private String stepName;
+	private StepType stepType; // default comes from parseStepType()
+	private String stepIntro;
+	private String stepSource;
+	private String stepTestClass;
+	private String stepLaunch;
+	private String stepLaunchButtonName;
 
-	
-	boolean inStep = false;
-
-	String name;
-	StepType type; // default comes from parseStepType()
-	String intro;
-	String source;
-	String testclass;
-	String launch;
-	String launchButtonName;
-
-	// Defaults
-	private void resetDefaults() {
-		name = "";
+	private void resetStepDefaults() {
+		stepName = "";
 		StepType type = Step.parseStepType(null);
-		intro = "";
-		source = "";
-		testclass = null;
-		launch = null;
-		launchButtonName = "Run Tests";
+		stepIntro = "";
+		stepSource = "";
+		stepTestClass = null;
+		stepLaunch = null;
+		stepLaunchButtonName = "Run Tests";
+	}
+
+	// source state
+	private String fileSource;
+	private String fileBceo;
+	private String fileBase64;
+
+	private void resetEdurideFileDefaults() {
+		fileSource = "";
+		fileBase64 = "";
+		fileBceo = "";
 	}
 
 	StringBuffer buffer = new StringBuffer();
-	ArrayList<Step> steps = new ArrayList<Step>();
 
-	////////////
-	
-	/* TODO
-	 
-(1) PROCESS <eduRideSource>, outside of <isa>
-<eduRideSource>
-   <file>
-     ... a path ala <source>
-   </file>
-   <BCEO>
-      ... send contents to BCEO...Util.importBCEOXML(xmlcontents, IResource)
-   </BCEO>
-   <base64>
-      ... lots o crap
-   </base64>
-</eduRideSource>
+	private void resetInput() {
+		buffer = new StringBuffer();
+	}
 
+	// parse STATE
+	private static final int OUTSIDE = 0;
+	private static final int IN_ISA = 3;
+	private static final int IN_STEP = 4;
+	private static final int IN_ERFILE = 5;
+	private int state = OUTSIDE;
 
-(2) make it so one .isa file can have 0+ activities, 0+ eduRideSources
+	private boolean inStep() {
+		return state == IN_STEP;
+	}
 
+	private boolean inIsa() {
+		return (state == IN_ISA || state == IN_STEP);
+	}
 
-(3) persist eduRideSource stuff.
+	private boolean inERFile() {
+		return state == IN_ERFILE;
+	}
 
+	private boolean outside() {
+		return state == OUTSIDE;
+	}
 
-	 */
-	
-	
-	
-	
+	private void startStep() {
+		state = IN_STEP;
+	}
+
+	private void startIsa() {
+		state = IN_ISA;
+	}
+
+	private void startERFile() {
+		state = IN_ERFILE;
+	}
+
+	private void endStep() {
+		state = IN_ISA;
+	}
+
+	private void endIsa() {
+		state = OUTSIDE;
+	}
+
+	private void endERFile() {
+		state = OUTSIDE;
+	}
+
+	// //////////
+
 	@Override
 	public void startDocument() throws SAXException {
+		
 	}
 
 	@Override
 	public void endDocument() throws SAXException {
-		Activity act = new Activity(projectName, isaIntro, isaName, steps, isaCategory, isaSubCategory, isaSortOrder);
-		act.setIsaFile(isafile);
-		act.setIProject(iproj);
-		acts.add( act );
+
 	}
 
-	
-	
 	@Override
 	public void startElement(String namespaceURI, String localName,
 			String qName, Attributes atts) throws SAXException {
-		if (qName.equalsIgnoreCase(stepTag)) {
-			inStep = true;
-			resetDefaults();
+		if (outside()) {
+			// not in any parse state yet
+			if (qName.equalsIgnoreCase(isaTag)) {
+				startIsa();
+				resetIsaDefaults();
+			} else if (qName.equalsIgnoreCase(sourceTag)) {
+				startERFile();
+				resetEdurideFileDefaults();
+			}
+		} else if (inIsa() && !(inStep())) {
+			// in an ISA
+			if (qName.equalsIgnoreCase(stepTag)) {
+				startStep();
+				resetStepDefaults();
+			}
+		} else {
+			// an error -- catch it in endElement I guess?
 		}
 	}
 
@@ -146,59 +221,94 @@ class ISAParseHandler extends DefaultHandler {
 	public void endElement(String uri, String localName, String qName)
 			throws SAXException {
 		String s = buffer.toString().trim();
-		if (qName.equalsIgnoreCase(stepTag)) {
-			Step newstep = new Step(projectName, name, source, type, intro, testclass,
-					launch, launchButtonName);
-			newstep.setIProject(iproj);
-			steps.add(newstep);
-			reset(false);
-		} else if (!inStep) {
-			if (qName.equalsIgnoreCase(introTag)) {
-				isaIntro = s;
-			} else if (qName.equalsIgnoreCase(nameTag)) {
-				isaName = s;
-			} else if (qName.equalsIgnoreCase(categoryTag)) {
-				isaCategory = s;
-			} else if (qName.equalsIgnoreCase(subcategoryTag)) {
-				isaSubCategory = s;
-			} else if (qName.equalsIgnoreCase(sortorderTag)) {
-				isaSortOrder = s;
-			}
-			reset(false);
-		} else {
-			// in the step tag
-			if (qName.equalsIgnoreCase(introTag)) {
-				intro = s;
-			} else if (qName.equalsIgnoreCase(nameTag)) {
-				name = s;
-			} else if (qName.equalsIgnoreCase(typeTag)) {
-				type = Step.parseStepType(s); // code is in Step
-			} else if (qName.equalsIgnoreCase(sourceTag)) {
-				source = s;
-			} else if (qName.equalsIgnoreCase(testclassTag)) {
-				testclass = s;
-			} else if (qName.equalsIgnoreCase(launchTag)) {
-				launch = s;
-			} else if (qName.equalsIgnoreCase(launchButtonNameTag)) {
-				launchButtonName = s;
-			} else if (qName.equalsIgnoreCase(isaTag)) {
-				// do nothing
+
+		if (inIsa()) {
+			// inside an ISA tag
+
+			if (!inStep()) {
+				// Not in a step
+				if (qName.equalsIgnoreCase(introTag)) {
+					isaIntro = s;
+				} else if (qName.equalsIgnoreCase(nameTag)) {
+					isaName = s;
+				} else if (qName.equalsIgnoreCase(categoryTag)) {
+					isaCategory = s;
+				} else if (qName.equalsIgnoreCase(subcategoryTag)) {
+					isaSubCategory = s;
+				} else if (qName.equalsIgnoreCase(sortorderTag)) {
+					isaSortOrder = s;
+				} else if (qName.equalsIgnoreCase(isaTag)) {
+					// closing the activity!
+					makeNewActivity();
+					endIsa();
+				} else 
+					// Note: stepTag here (endElement) is an error!
+				{
+					ISAUtil.createISAFormatProblemMarker(isafile, 1,
+							"Bad tag in isa file, inside '"+isaTag+"' (name: '"
+									+ isaName + "'): " + qName
+									+ " ; Content is: " + s);
+
+				}
 			} else {
-				ISAUtil.createISAFormatProblemMarker(isafile, 1, "Bad tag in isa file: " + qName + " String is: " + s);
-				// Console.isaErr("Bad tag in isa file: " + qName + " String is: " + s);
+				// inside the step tag
+				if (qName.equalsIgnoreCase(introTag)) {
+					stepIntro = s;
+				} else if (qName.equalsIgnoreCase(nameTag)) {
+					stepName = s;
+				} else if (qName.equalsIgnoreCase(typeTag)) {
+					stepType = Step.parseStepType(s); // code is in Step
+				} else if (qName.equalsIgnoreCase(sourceTag)) {
+					stepSource = s;
+				} else if (qName.equalsIgnoreCase(testclassTag)) {
+					stepTestClass = s;
+				} else if (qName.equalsIgnoreCase(launchTag)) {
+					stepLaunch = s;
+				} else if (qName.equalsIgnoreCase(launchButtonNameTag)) {
+					stepLaunchButtonName = s;
+				} else if (qName.equalsIgnoreCase(stepTag)) {
+					makeNewStep();
+					endStep();
+				} else {
+					ISAUtil.createISAFormatProblemMarker(isafile, 1,
+							"Bad tag in isa file, inside '" + stepTag
+									+ "' (name: '" + stepName + "'): " + qName
+									+ " ; Content is: " + s);
+
+				}
 			}
-			reset(inStep);
+		} else if (inERFile()) {
+			// in a edurideFiletag
+			// TODO
+		} else {
+			// not in isa or source... wha?
+			ISAUtil.createISAFormatProblemMarker(isafile, 1,
+					"Bad tag in isa file, outside of '" + isaTag + "' or '"
+							+ sourceTag + "': " + qName + " ; Content is: " + s);
 		}
+
+		resetInput();
+
+	}
+
+	private void makeNewStep() {
+		Step newstep = new Step(projectName, stepName, stepSource, stepType,
+				stepIntro, stepTestClass, stepLaunch, stepLaunchButtonName);
+		newstep.setIProject(iproj);
+		isaSteps.add(newstep);
+	}
+
+	private void makeNewActivity() {
+		Activity act = new Activity(projectName, isaIntro, isaName, isaSteps,
+				isaCategory, isaSubCategory, isaSortOrder);
+		act.setIsaFile(isafile);
+		act.setIProject(iproj);
+		acts.add(act);
 	}
 
 	@Override
 	public void characters(char[] ch, int start, int length) {
 		buffer.append(new String(ch, start, length));
-	}
-
-	private void reset(boolean inEx) {
-		buffer = new StringBuffer();
-		inStep = inEx;
 	}
 
 }
