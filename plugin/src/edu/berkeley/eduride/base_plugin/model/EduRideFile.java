@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import org.eclipse.core.resources.IFile;
 
+import edu.berkeley.eduride.base_plugin.isafile.ISABceoBoxSpec;
 import edu.berkeley.eduride.base_plugin.util.Base64Coder;
 import edu.berkeley.eduride.base_plugin.util.Console;
 
@@ -18,12 +19,16 @@ public class EduRideFile {
 	private IFile isaFile = null;  // where it was contained
 	private File file = null;
 	private String resetValue = "";
-	private String bceoSpec = null;
+	private ArrayList<ISABceoBoxSpec> boxSpecs = new ArrayList<ISABceoBoxSpec>();
 	
 	
-	private EduRideFile(File file) {
+	private EduRideFile(File file, IFile isaFile, ArrayList<ISABceoBoxSpec> boxSpecs, String base64) {
 		super();
-		this.setFile(file);
+		this.file = file;
+		String rv = Base64Coder.decodeString(base64);
+		this.resetValue = rv;
+		this.boxSpecs = boxSpecs;
+		this.isaFile = isaFile;
 		persistEduRideFile(this);
 	}
 
@@ -34,9 +39,9 @@ public class EduRideFile {
 	public IFile getIsaFile() {
 		return isaFile;
 	}
-	public void setIsaFile(IFile isaFile) {
-		this.isaFile = isaFile;
-	}
+//	public void setIsaFile(IFile isaFile) {
+//		this.isaFile = isaFile;
+//	}
 
 
 
@@ -45,37 +50,38 @@ public class EduRideFile {
 	public File getFile() {
 		return file;
 	}
-	public void setFile(File file) {
-		if (file.isFile()) {
-			this.file = file;
-		}
+//	public void setFile(File file) {
+//		if (file.isFile()) {
+//			this.file = file;
+//		}
+//	}
+
+
+
+	
+	public ArrayList<ISABceoBoxSpec>getBceoSpecs() {
+		return boxSpecs;
+	}
+//	public void addBceoSpec(ISABceoBoxSpec bceoSpec) {
+//		boxSpecs.add(bceoSpec);
+//	}
+	public boolean hasBceoSpec() {
+		return (boxSpecs != null);
 	}
 
 
+
+
+//	public void setResetValueBase64(String base64) {
+//		String v = Base64Coder.decodeString(base64);
+//		this.resetValue = v;
+//	}
+	
+	
+	
 	public String getResetValue() {
 		return resetValue;
 	}
-	
-	
-	public String getBceoSpec() {
-		return bceoSpec;
-	}
-	public void setBceoSpec(String bceoSpec) {
-		this.bceoSpec = bceoSpec;
-	}
-	public boolean hasBceoSpec() {
-		return (bceoSpec != null);
-	}
-
-
-
-
-	public void setResetValueBase64(String base64) {
-		String v = Base64Coder.decodeString(base64);
-		this.resetValue = v;
-	}
-	
-	
 	
 	
 	public boolean resetFile() {
@@ -99,18 +105,19 @@ public class EduRideFile {
 	private static HashMap<File, EduRideFile> edurideFiles = new HashMap<File, EduRideFile>();
 	
 	/**
-	 * Either returns the existing EduRideFile for this File,
+	 * Either returns the existing EduRideFile for this File etc.
 	 * or makes a new one
 	 * @param file
 	 */
-	public static EduRideFile get(File file) {
+	public static EduRideFile get(File file, IFile isaFile, ArrayList<ISABceoBoxSpec> boxSpecs, String base64) {
 		EduRideFile erf = edurideFiles.get(file);
 		if (erf == null) {
 			// doesn't exist yet!
-			erf = new EduRideFile(file);
+			erf = new EduRideFile(file, isaFile, boxSpecs, base64);
 		}
 		return erf;
 	}
+	
 	
 	
 	public static Collection<EduRideFile> getAll() {

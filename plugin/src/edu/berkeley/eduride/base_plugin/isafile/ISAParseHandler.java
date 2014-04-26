@@ -1,14 +1,20 @@
 package edu.berkeley.eduride.base_plugin.isafile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import edu.berkeley.eduride.base_plugin.isafile.ISABceoBoxSpec.BceoBoxType;
 import edu.berkeley.eduride.base_plugin.model.Activity;
+import edu.berkeley.eduride.base_plugin.model.EduRideFile;
 import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.model.Step.StepType;
 
@@ -37,8 +43,14 @@ class ISAParseHandler extends DefaultHandler {
 
 	public static final String edurideFileTag = "eduridefile";
 	// reuse <source>
-	public static final String bceo = "bceo";
-	public static final String base64 = "base64";
+	public static final String base64Tag = "base64";
+	public static final String boxTag = "box";
+	// reuse type in box
+	public static final String boxInlineValue = "inline";
+	public static final String boxMultilineValue = "multiline";
+	// reuse name in box
+	public static final String startTag = "start";
+	public static final String stopTag = "stop";
 
 	/*
 	 * TODO
@@ -73,22 +85,29 @@ class ISAParseHandler extends DefaultHandler {
 		this.iproj = iproj;
 	}
 
+
+	
+	
+	
+
+	// /////// tag state
+
+	
+	
+	
+	// isa state
+
 	private ArrayList<Activity> acts = new ArrayList<Activity>();
 	public ArrayList<Activity> getActivities() {
 		return acts;
 	}
 
-
-
-	// /////// tag state
-
-	// isa state
 	private String isaIntro;
 	private String isaName;
 	private String isaCategory;
 	private String isaSubCategory;
 	private String isaSortOrder;
-	ArrayList<Step> isaSteps;
+
 	
 	private void resetIsaDefaults() {
 		isaIntro = "";
@@ -99,7 +118,11 @@ class ISAParseHandler extends DefaultHandler {
 		isaSteps = new ArrayList<Step>();
 	}
 
+
 	// step state
+	
+	ArrayList<Step> isaSteps;
+	
 	private String stepName;
 	private StepType stepType; // default comes from parseStepType()
 	private String stepIntro;
@@ -118,28 +141,58 @@ class ISAParseHandler extends DefaultHandler {
 		stepLaunchButtonName = "Run Tests";
 	}
 
+	
+	
 	// source state
+	
+	private ArrayList<EduRideFile> edurideFiles = new ArrayList<EduRideFile>();
+	public ArrayList<EduRideFile> getEduRideFiles() {
+		return edurideFiles;
+	}
+	
 	private String fileSource;
-	private String fileBceo;
 	private String fileBase64;
 
 	private void resetEdurideFileDefaults() {
 		fileSource = "";
 		fileBase64 = "";
-		fileBceo = "";
+		erfBoxes = new ArrayList<ISABceoBoxSpec>();
 	}
 
+	
+	//// box state
+	
+	ArrayList<ISABceoBoxSpec> erfBoxes;
+	
+	private BceoBoxType boxType;
+	private String boxName;
+	private int boxStart;
+	private int boxStop;
+	private void resetBox() {
+		boxType = BceoBoxType.UNKNOWN;
+		boxName = null;
+		boxStart = -1;
+		boxStop = -1;
+	}
+	
+	
+	////
+	
 	StringBuffer buffer = new StringBuffer();
 
 	private void resetInput() {
 		buffer = new StringBuffer();
 	}
+	
+	
+	
 
 	// parse STATE
 	private static final int OUTSIDE = 0;
 	private static final int IN_ISA = 3;
 	private static final int IN_STEP = 4;
 	private static final int IN_ERFILE = 5;
+	private static final int IN_BOX = 6;
 	private int state = OUTSIDE;
 
 	private boolean inStep() {
@@ -152,6 +205,9 @@ class ISAParseHandler extends DefaultHandler {
 
 	private boolean inERFile() {
 		return state == IN_ERFILE;
+	}
+	private boolean inBox() {
+		return state == IN_BOX;
 	}
 
 	private boolean outside() {
@@ -169,6 +225,9 @@ class ISAParseHandler extends DefaultHandler {
 	private void startERFile() {
 		state = IN_ERFILE;
 	}
+	private void startBox() {
+		state = IN_BOX;
+	}
 
 	private void endStep() {
 		state = IN_ISA;
@@ -180,6 +239,9 @@ class ISAParseHandler extends DefaultHandler {
 
 	private void endERFile() {
 		state = OUTSIDE;
+	}
+	private void endBox() {
+		state = IN_ERFILE;
 	}
 
 	// //////////
@@ -202,7 +264,7 @@ class ISAParseHandler extends DefaultHandler {
 			if (qName.equalsIgnoreCase(isaTag)) {
 				startIsa();
 				resetIsaDefaults();
-			} else if (qName.equalsIgnoreCase(sourceTag)) {
+			} else if (qName.equalsIgnoreCase(edurideFileTag)) {
 				startERFile();
 				resetEdurideFileDefaults();
 			}
@@ -211,6 +273,11 @@ class ISAParseHandler extends DefaultHandler {
 			if (qName.equalsIgnoreCase(stepTag)) {
 				startStep();
 				resetStepDefaults();
+			}
+		} else if (inERFile() && !(inBox())) {
+			if (qName.equalsIgnoreCase(boxTag)) {
+				startBox();
+				resetBox();
 			}
 		} else {
 			// an error -- catch it in endElement I guess?
@@ -280,6 +347,37 @@ class ISAParseHandler extends DefaultHandler {
 		} else if (inERFile()) {
 			// in a edurideFiletag
 			// TODO
+			if (!(inBox())) {
+				if (qName.equalsIgnoreCase(sourceTag)) {
+					fileSource = s;
+				} else if (qName.equalsIgnoreCase(base64Tag)) {
+					fileBase64 = s;
+				} else if (qName.equalsIgnoreCase(edurideFileTag)) {
+					makeNewERFile();
+					endERFile();
+				}
+			} else {
+				// in a box
+				if (qName.equalsIgnoreCase(nameTag)) {
+					boxName = s;
+				} else if (qName.equalsIgnoreCase(typeTag)) {
+					if (s.equalsIgnoreCase(boxMultilineValue)) {
+						boxType = boxType.MULTILINE;
+					} else if (s.equalsIgnoreCase(boxInlineValue)) {
+						boxType = boxType.INLINE;
+					} else {
+						boxType = boxType.UNKNOWN;
+					}
+				} else if (qName.equalsIgnoreCase(startTag)) {
+					// TODO -- catch NumberFormatExceptions here?
+					boxStart = Integer.parseInt(s);
+				} else if (qName.equalsIgnoreCase(stopTag)) {
+					boxStop = Integer.parseInt(s);
+				} else if (qName.equalsIgnoreCase(boxTag)) {
+					makeNewBox();
+					endBox();
+				}
+			}
 		} else {
 			// not in isa or source... wha?
 			ISAUtil.createISAFormatProblemMarker(isafile, 1,
@@ -305,6 +403,33 @@ class ISAParseHandler extends DefaultHandler {
 		act.setIProject(iproj);
 		acts.add(act);
 	}
+	
+	private void makeNewERFile() {
+		// TODO
+		try {
+			Path path = new Path(projectName + fileSource);
+			IFile ifile = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+			if (!(ifile.exists())) {
+				throw new IOException("File '"+ fileSource + "' doesn't exist");
+			}
+			File f = ifile.getFullPath().toFile();
+			if (!(f.exists())) {
+				throw new IOException("File '"+ fileSource + "' doesn't exist");
+			}
+			EduRideFile erf = EduRideFile.get(f, isafile, erfBoxes, fileBase64);
+			edurideFiles.add(erf);
+			
+		} catch (IOException e) {
+			ISAUtil.createISAFormatProblemMarker(isafile, 1, e.getMessage());
+
+		}
+	}
+	
+	private void makeNewBox() {
+		ISABceoBoxSpec boxspec = new ISABceoBoxSpec(boxType, boxName, boxStart, boxStop);
+		erfBoxes.add(boxspec);
+	}
+	
 
 	@Override
 	public void characters(char[] ch, int start, int length) {

@@ -150,7 +150,10 @@ public class ISAUtil {
 			}
 
 			// eduride source references
-			
+			ArrayList<EduRideFile> edurideFiles = handler.getEduRideFiles();
+			for (EduRideFile erf : edurideFiles) {
+				postProcess(erf);
+			}
 			
 			
 			
@@ -164,7 +167,7 @@ public class ISAUtil {
 //			return null; // ?
 		} catch (SAXParseException e) {
 			// problem in the XML somewhere
-			String msg = "Parse Exception: tag " + e.getPublicId()
+			String msg = "SAX Parse Exception: tag " + e.getPublicId()
 					+ ", column " + e.getColumnNumber();
 			createISAFormatProblemMarker(ifile, e.getLineNumber(), msg);
 
@@ -244,7 +247,8 @@ public class ISAUtil {
 	
 
 	
-	
+	// this may happen more than once for each erf (or, the erf will change 
+	//   between invocations)
 	private static void postProcess(EduRideFile erf) {
 		for (EduRideFileCreatedListener l : erfCreatedListeners) {
 			notify(l, erf);
