@@ -27,6 +27,8 @@ import edu.berkeley.eduride.base_plugin.model.Step.StepType;
 
 class ISAParseHandler extends DefaultHandler {
 
+	public static final String edurideTag = "eduride";
+
 	public static final String isaTag = "isa";
 	public static final String stepTag = "exercise";
 	public static final String categoryTag = "category";
@@ -85,19 +87,12 @@ class ISAParseHandler extends DefaultHandler {
 		this.iproj = iproj;
 	}
 
-
-	
-	
-	
-
 	// /////// tag state
 
-	
-	
-	
 	// isa state
 
 	private ArrayList<Activity> acts = new ArrayList<Activity>();
+
 	public ArrayList<Activity> getActivities() {
 		return acts;
 	}
@@ -108,7 +103,6 @@ class ISAParseHandler extends DefaultHandler {
 	private String isaSubCategory;
 	private String isaSortOrder;
 
-	
 	private void resetIsaDefaults() {
 		isaIntro = "";
 		isaName = "";
@@ -118,11 +112,10 @@ class ISAParseHandler extends DefaultHandler {
 		isaSteps = new ArrayList<Step>();
 	}
 
-
 	// step state
-	
+
 	ArrayList<Step> isaSteps;
-	
+
 	private String stepName;
 	private StepType stepType; // default comes from parseStepType()
 	private String stepIntro;
@@ -141,15 +134,14 @@ class ISAParseHandler extends DefaultHandler {
 		stepLaunchButtonName = "Run Tests";
 	}
 
-	
-	
 	// source state
-	
+
 	private ArrayList<EduRideFile> edurideFiles = new ArrayList<EduRideFile>();
+
 	public ArrayList<EduRideFile> getEduRideFiles() {
 		return edurideFiles;
 	}
-	
+
 	private String fileSource;
 	private String fileBase64;
 
@@ -159,59 +151,67 @@ class ISAParseHandler extends DefaultHandler {
 		erfBoxes = new ArrayList<ISABceoBoxSpec>();
 	}
 
-	
-	//// box state
-	
+	// // box state
+
 	ArrayList<ISABceoBoxSpec> erfBoxes;
-	
+
 	private BceoBoxType boxType;
 	private String boxName;
 	private int boxStart;
 	private int boxStop;
+
 	private void resetBox() {
 		boxType = BceoBoxType.UNKNOWN;
 		boxName = null;
 		boxStart = -1;
 		boxStop = -1;
 	}
-	
-	
-	////
-	
+
+	// //
+
 	StringBuffer buffer = new StringBuffer();
 
 	private void resetInput() {
 		buffer = new StringBuffer();
 	}
-	
-	
-	
 
 	// parse STATE
 	private static final int OUTSIDE = 0;
+	private static final int IN_EDURIDE = 1;
 	private static final int IN_ISA = 3;
 	private static final int IN_STEP = 4;
 	private static final int IN_ERFILE = 5;
 	private static final int IN_BOX = 6;
 	private int state = OUTSIDE;
 
+	private boolean outside() {
+		return state == OUTSIDE;
+	}
+
 	private boolean inStep() {
 		return state == IN_STEP;
 	}
 
+	private boolean inEduride() {
+		// technically should be true if in any other state... whatever... SAX2
+		// sax eggs
+		return (state == IN_EDURIDE);
+	}
+
 	private boolean inIsa() {
-		return (state == IN_ISA || state == IN_STEP);
+		return (state == IN_ISA || inStep());
 	}
 
 	private boolean inERFile() {
-		return state == IN_ERFILE;
+		return (state == IN_ERFILE || inBox());
 	}
+
 	private boolean inBox() {
 		return state == IN_BOX;
 	}
 
-	private boolean outside() {
-		return state == OUTSIDE;
+	private void startEduride() {
+		state = IN_EDURIDE;
 	}
 
 	private void startStep() {
@@ -225,6 +225,7 @@ class ISAParseHandler extends DefaultHandler {
 	private void startERFile() {
 		state = IN_ERFILE;
 	}
+
 	private void startBox() {
 		state = IN_BOX;
 	}
@@ -234,39 +235,63 @@ class ISAParseHandler extends DefaultHandler {
 	}
 
 	private void endIsa() {
-		state = OUTSIDE;
+		state = IN_EDURIDE;
 	}
 
 	private void endERFile() {
-		state = OUTSIDE;
+		state = IN_EDURIDE;
 	}
+
 	private void endBox() {
 		state = IN_ERFILE;
+	}
+
+	private void endEduride() {
+		state = OUTSIDE;
 	}
 
 	// //////////
 
 	@Override
 	public void startDocument() throws SAXException {
-		
+
 	}
 
 	@Override
 	public void endDocument() throws SAXException {
-
+		if (!outside()) {
+			ISAUtil.createISAFormatProblemMarker(isafile, 1,
+					"Document ended without properly closed '" + edurideTag
+							+ "' tag.");
+		}
 	}
 
 	@Override
 	public void startElement(String namespaceURI, String localName,
 			String qName, Attributes atts) throws SAXException {
 		if (outside()) {
-			// not in any parse state yet
+			if (qName.equalsIgnoreCase(edurideTag)) {
+				startEduride();
+			} else if (qName.equalsIgnoreCase(isaTag)) {
+				// ok to have an <isa> outside of <eduride>, why not?
+				startIsa();
+				resetIsaDefaults();
+			} else {
+				ISAUtil.createISAFormatProblemMarker(isafile, 1,
+						"Bad start tag in isa file, haven't seen '" + edurideTag + "' or '" + isaTag + "' yet): " + qName);
+
+			}
+		} else if (inEduride()) {
+
 			if (qName.equalsIgnoreCase(isaTag)) {
 				startIsa();
 				resetIsaDefaults();
 			} else if (qName.equalsIgnoreCase(edurideFileTag)) {
 				startERFile();
 				resetEdurideFileDefaults();
+			} else {
+				ISAUtil.createISAFormatProblemMarker(isafile, 1,
+						"Bad start tag in isa file, inside '" + edurideTag + "): " + qName);
 			}
 		} else if (inIsa() && !(inStep())) {
 			// in an ISA
@@ -280,7 +305,7 @@ class ISAParseHandler extends DefaultHandler {
 				resetBox();
 			}
 		} else {
-			// an error -- catch it in endElement I guess?
+			// let it go, let it go, can't hold it back anymore
 		}
 	}
 
@@ -308,14 +333,12 @@ class ISAParseHandler extends DefaultHandler {
 					// closing the activity!
 					makeNewActivity();
 					endIsa();
-				} else 
+				} else {
 					// Note: stepTag here (endElement) is an error!
-				{
 					ISAUtil.createISAFormatProblemMarker(isafile, 1,
-							"Bad tag in isa file, inside '"+isaTag+"' (name: '"
-									+ isaName + "'): " + qName
+							"Bad tag in isa file, inside '" + isaTag
+									+ "' (name: '" + isaName + "'): " + qName
 									+ " ; Content is: " + s);
-
 				}
 			} else {
 				// inside the step tag
@@ -341,12 +364,10 @@ class ISAParseHandler extends DefaultHandler {
 							"Bad tag in isa file, inside '" + stepTag
 									+ "' (name: '" + stepName + "'): " + qName
 									+ " ; Content is: " + s);
-
 				}
 			}
 		} else if (inERFile()) {
 			// in a edurideFiletag
-			// TODO
 			if (!(inBox())) {
 				if (qName.equalsIgnoreCase(sourceTag)) {
 					fileSource = s;
@@ -355,18 +376,24 @@ class ISAParseHandler extends DefaultHandler {
 				} else if (qName.equalsIgnoreCase(edurideFileTag)) {
 					makeNewERFile();
 					endERFile();
+				} else {
+					ISAUtil.createISAFormatProblemMarker(isafile, 1,
+							"Bad tag in isa file, inside '" + edurideFileTag
+									+ "' (source: '" + fileSource + "'): "
+									+ qName);
 				}
+
 			} else {
 				// in a box
 				if (qName.equalsIgnoreCase(nameTag)) {
 					boxName = s;
 				} else if (qName.equalsIgnoreCase(typeTag)) {
 					if (s.equalsIgnoreCase(boxMultilineValue)) {
-						boxType = boxType.MULTILINE;
+						boxType = BceoBoxType.MULTILINE;
 					} else if (s.equalsIgnoreCase(boxInlineValue)) {
-						boxType = boxType.INLINE;
+						boxType = BceoBoxType.INLINE;
 					} else {
-						boxType = boxType.UNKNOWN;
+						boxType = BceoBoxType.UNKNOWN;
 					}
 				} else if (qName.equalsIgnoreCase(startTag)) {
 					// TODO -- catch NumberFormatExceptions here?
@@ -376,7 +403,23 @@ class ISAParseHandler extends DefaultHandler {
 				} else if (qName.equalsIgnoreCase(boxTag)) {
 					makeNewBox();
 					endBox();
+				} else {
+					ISAUtil.createISAFormatProblemMarker(isafile, 1,
+							"Bad tag in isa file, inside '" + boxTag
+									+ "' (name: '" + boxName + "'): " + qName);
+
 				}
+			}
+		} else if (inEduride()) {
+			// in eduride but not in isa or eduridefile
+			if (qName.equalsIgnoreCase(edurideTag)) {
+				endEduride();
+				// TODO -- end all the processing??
+			} else {
+				ISAUtil.createISAFormatProblemMarker(isafile, 1,
+						"Bad tag in isa file, inside '" + edurideTag + ": "
+								+ qName);
+
 			}
 		} else {
 			// not in isa or source... wha?
@@ -403,33 +446,34 @@ class ISAParseHandler extends DefaultHandler {
 		act.setIProject(iproj);
 		acts.add(act);
 	}
-	
+
 	private void makeNewERFile() {
 		// TODO
 		try {
 			Path path = new Path(projectName + fileSource);
-			IFile ifile = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+			IFile ifile = ResourcesPlugin.getWorkspace().getRoot()
+					.getFile(path);
 			if (!(ifile.exists())) {
-				throw new IOException("File '"+ fileSource + "' doesn't exist");
+				throw new IOException("File '" + fileSource + "' doesn't exist");
 			}
-			File f = ifile.getFullPath().toFile();
-			if (!(f.exists())) {
-				throw new IOException("File '"+ fileSource + "' doesn't exist");
-			}
-			EduRideFile erf = EduRideFile.get(f, isafile, erfBoxes, fileBase64);
+//			File f = ifile.getFullPath().toFile();
+//			if (!(f.exists())) {
+//				throw new IOException("File '" + fileSource + "' doesn't exist");
+//			}
+			EduRideFile erf = EduRideFile.get(ifile, isafile, erfBoxes, fileBase64);
 			edurideFiles.add(erf);
-			
+
 		} catch (IOException e) {
 			ISAUtil.createISAFormatProblemMarker(isafile, 1, e.getMessage());
 
 		}
 	}
-	
+
 	private void makeNewBox() {
-		ISABceoBoxSpec boxspec = new ISABceoBoxSpec(boxType, boxName, boxStart, boxStop);
+		ISABceoBoxSpec boxspec = new ISABceoBoxSpec(boxType, boxName, boxStart,
+				boxStop);
 		erfBoxes.add(boxspec);
 	}
-	
 
 	@Override
 	public void characters(char[] ch, int start, int length) {

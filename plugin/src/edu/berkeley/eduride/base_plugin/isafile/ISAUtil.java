@@ -302,6 +302,8 @@ public class ISAUtil {
 	/*
 	 * EduRideFile created listeners
 	 */
+	
+	// Don't think these are necessary anymore?
 
 	private static ArrayList<EduRideFileCreatedListener> erfCreatedListeners = new ArrayList<EduRideFileCreatedListener>();	
 
@@ -324,7 +326,7 @@ public class ISAUtil {
 			try {
 				l.bceoSpecified(erf);
 			} catch (ISAFormatException e) {
-				createISAFormatProblemMarker(erf.getIsaFile(), 1, "inside BCEO spec in <eduridefile> at <source> '" + erf.getFile().getPath() + "':: " + e.getMessage());
+				createISAFormatProblemMarker(erf.getIsaFile(), 1, "inside BCEO spec in <eduridefile> at <source> '" + erf.getFile().getFullPath().toString() + "':: " + e.getMessage());
 			}
 		}
 	}
