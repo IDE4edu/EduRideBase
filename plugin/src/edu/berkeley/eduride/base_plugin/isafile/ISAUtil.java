@@ -150,10 +150,8 @@ public class ISAUtil {
 			}
 
 			// eduride source references
-			ArrayList<EduRideFile> edurideFiles = handler.getEduRideFiles();
-			for (EduRideFile erf : edurideFiles) {
-				postProcess(erf);
-			}
+			// no post processing on these -- the EduRideFile is made in the endElement now, why not...
+			
 			
 			
 			
@@ -247,15 +245,7 @@ public class ISAUtil {
 	
 
 	
-	// this may happen more than once for each erf (or, the erf will change 
-	//   between invocations)
-	private static void postProcess(EduRideFile erf) {
-		for (EduRideFileCreatedListener l : erfCreatedListeners) {
-			notify(l, erf);
-		}
-	}
-	
-	
+
 	
 	
 	/*
@@ -299,38 +289,7 @@ public class ISAUtil {
 	
 
 	
-	/*
-	 * EduRideFile created listeners
-	 */
-	
-	// Don't think these are necessary anymore?
 
-	private static ArrayList<EduRideFileCreatedListener> erfCreatedListeners = new ArrayList<EduRideFileCreatedListener>();	
-
-	public static boolean registerEduRideFileCreatedListener(EduRideFileCreatedListener l) {
-		for (EduRideFile erf : EduRideFile.getAll()) {
-			if (erf.hasBceoSpec()) {
-			}
-		}
-		boolean result = erfCreatedListeners.add(l);
-		return result;
-	}
-	
-	public static boolean removeEduRideFileCreatedListener(EduRideFileCreatedListener l) {
-		return (erfCreatedListeners.remove(l));
-	}
-	
-	
-	private static void notify(EduRideFileCreatedListener l, EduRideFile erf) {
-		if (erf.hasBceoSpec()) {
-			try {
-				l.bceoSpecified(erf);
-			} catch (ISAFormatException e) {
-				createISAFormatProblemMarker(erf.getIsaFile(), 1, "inside BCEO spec in <eduridefile> at <source> '" + erf.getFile().getFullPath().toString() + "':: " + e.getMessage());
-			}
-		}
-	}
-	
 	
 	
 	

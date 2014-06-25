@@ -17,6 +17,7 @@ import edu.berkeley.eduride.base_plugin.model.Activity;
 import edu.berkeley.eduride.base_plugin.model.EduRideFile;
 import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.model.Step.StepType;
+import edu.berkeley.eduride.base_plugin.util.Console;
 
 /**
  * used by ISAParser
@@ -134,13 +135,15 @@ class ISAParseHandler extends DefaultHandler {
 		stepLaunchButtonName = "Run Tests";
 	}
 
+	
+	
 	// source state
 
-	private ArrayList<EduRideFile> edurideFiles = new ArrayList<EduRideFile>();
+	//private ArrayList<EduRideFile> edurideFiles = new ArrayList<EduRideFile>();
 
-	public ArrayList<EduRideFile> getEduRideFiles() {
-		return edurideFiles;
-	}
+	//public ArrayList<EduRideFile> getEduRideFiles() {
+	//	return edurideFiles;
+	//}
 
 	private String fileSource;
 	private String fileBase64;
@@ -456,12 +459,16 @@ class ISAParseHandler extends DefaultHandler {
 			if (!(ifile.exists())) {
 				throw new IOException("File '" + fileSource + "' doesn't exist");
 			}
-//			File f = ifile.getFullPath().toFile();
-//			if (!(f.exists())) {
-//				throw new IOException("File '" + fileSource + "' doesn't exist");
-//			}
+
 			EduRideFile erf = EduRideFile.get(ifile, isafile, erfBoxes, fileBase64);
-			edurideFiles.add(erf);
+			boolean success = EduRideFile.persist(erf);
+			if (!success) {
+				// whoops, there already was an EduRideFile for that IFile!
+				Console.err("Error while parsing ISA file, duplicate eduridefile entry in " 
+						+ isafile.getFullPath().toString() + ": already had a reference to target file (name: " 
+						+ ifile.getFullPath().toString() + ") in ISA file " + erf.getIsaFile().getFullPath().toString() + "!");
+						
+			}
 
 		} catch (IOException e) {
 			ISAUtil.createISAFormatProblemMarker(isafile, 1, e.getMessage());

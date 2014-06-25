@@ -130,10 +130,23 @@ public class EduRideFile {
 	
 	private static HashMap<IFile, EduRideFile> edurideFiles = new HashMap<IFile, EduRideFile>();
 	
+	
+	public static boolean persist(EduRideFile erf) {
+		IFile file = erf.getFile();
+		if (file == null) {
+			return false;
+		} else if (edurideFiles.containsKey(file)) {
+			// are we sad?  ignore this?
+			return false;
+		} else {
+			edurideFiles.put(file, erf);
+			return true;
+		}
+	}
+	
+	
 	/**
-	 * Either returns the existing EduRideFile for this File etc.
-	 * or makes a new one
-	 * @param file
+	 * Makes a new ERF file, or returns existing one for file target
 	 */
 	public static EduRideFile get(IFile file, IFile isaFile, ArrayList<ISABceoBoxSpec> boxSpecs, String base64) {
 		EduRideFile erf = edurideFiles.get(file);
@@ -144,6 +157,17 @@ public class EduRideFile {
 		return erf;
 	}
 	
+	/*
+	 * convenience method -- returns box specs in an eduridefile (if it exists) for the target file
+	 */
+	public static ArrayList<ISABceoBoxSpec> getBceoBoxSpecs(IFile targetfile) {
+		EduRideFile erf = edurideFiles.get(targetfile);
+		if (erf == null) {
+			return null;
+		} else {
+			return (erf.getBceoSpecs());
+		}
+	}
 	
 	
 	public static Collection<EduRideFile> getAll() {
