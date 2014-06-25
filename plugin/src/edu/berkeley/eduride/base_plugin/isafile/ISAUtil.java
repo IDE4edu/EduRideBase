@@ -23,6 +23,7 @@ import org.xml.sax.SAXParseException;
 
 import edu.berkeley.eduride.base_plugin.EduRideBase;
 import edu.berkeley.eduride.base_plugin.model.Activity;
+import edu.berkeley.eduride.base_plugin.model.EduRideFile;
 import edu.berkeley.eduride.base_plugin.model.Step;
 import edu.berkeley.eduride.base_plugin.util.Console;
 
@@ -149,7 +150,10 @@ public class ISAUtil {
 			}
 
 			// eduride source references
-			
+			ArrayList<EduRideFile> edurideFiles = handler.getEduRideFiles();
+			for (EduRideFile erf : edurideFiles) {
+				postProcess(erf);
+			}
 			
 			
 			
@@ -163,7 +167,7 @@ public class ISAUtil {
 //			return null; // ?
 		} catch (SAXParseException e) {
 			// problem in the XML somewhere
-			String msg = "Parse Exception: tag " + e.getPublicId()
+			String msg = "SAX Parse Exception: tag " + e.getPublicId()
 					+ ", column " + e.getColumnNumber();
 			createISAFormatProblemMarker(ifile, e.getLineNumber(), msg);
 
@@ -238,6 +242,20 @@ public class ISAUtil {
 		}
 	}
 	
+	// TODO move to 'notify' style?  So, it does the best ISAFormatException catching?
+	
+	
+
+	
+	// this may happen more than once for each erf (or, the erf will change 
+	//   between invocations)
+	private static void postProcess(EduRideFile erf) {
+		for (EduRideFileCreatedListener l : erfCreatedListeners) {
+			notify(l, erf);
+		}
+	}
+	
+	
 	
 	
 	/*
@@ -270,7 +288,7 @@ public class ISAUtil {
 	
 	public static boolean registerStepCreatedListener(StepCreatedListener l) {
 		boolean result = stepCreatedListeners.add(l);
-		// TODO call listener on all existing steps ?
+		// TODO call listener on all existing steps -- yep, see eduRideFile stuff below...
 		return (result);
 	}
 	
@@ -278,8 +296,45 @@ public class ISAUtil {
 		return (stepCreatedListeners.remove(l));
 	}
 
+	
 
+	
+	/*
+	 * EduRideFile created listeners
+	 */
+	
+	// Don't think these are necessary anymore?
 
+	private static ArrayList<EduRideFileCreatedListener> erfCreatedListeners = new ArrayList<EduRideFileCreatedListener>();	
+
+	public static boolean registerEduRideFileCreatedListener(EduRideFileCreatedListener l) {
+		for (EduRideFile erf : EduRideFile.getAll()) {
+			if (erf.hasBceoSpec()) {
+			}
+		}
+		boolean result = erfCreatedListeners.add(l);
+		return result;
+	}
+	
+	public static boolean removeEduRideFileCreatedListener(EduRideFileCreatedListener l) {
+		return (erfCreatedListeners.remove(l));
+	}
+	
+	
+	private static void notify(EduRideFileCreatedListener l, EduRideFile erf) {
+		if (erf.hasBceoSpec()) {
+			try {
+				l.bceoSpecified(erf);
+			} catch (ISAFormatException e) {
+				createISAFormatProblemMarker(erf.getIsaFile(), 1, "inside BCEO spec in <eduridefile> at <source> '" + erf.getFile().getFullPath().toString() + "':: " + e.getMessage());
+			}
+		}
+	}
+	
+	
+	
+	
+	
 	//TODO listen for new projects getting created -- imported from archive, for example
 
 	
